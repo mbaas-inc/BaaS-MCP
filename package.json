@@ -1,0 +1,68 @@
+{
+  "name": "@mbaas/baas-mcp",
+  "version": "2.0.1",
+  "description": "AIApp BaaS 인증 시스템 MCP 서버 - AI 기반 문서 검색 및 코드 자동 생성",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "baas-mcp": "dist/server.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "llms.txt",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "echo \"테스트 스위트가 아직 구현되지 않았습니다.\" && exit 0"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "authentication",
+    "baas",
+    "aiapp",
+    "auth",
+    "jwt",
+    "api",
+    "document-search",
+    "code-generation",
+    "ai",
+    "claude",
+    "cursor"
+  ],
+  "author": {
+    "name": "jjunmomo",
+    "email": "jjunmo@mbaas.kr"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aiapp/baas-mcp.git"
+  },
+  "homepage": "https://docs.aiapp.link",
+  "bugs": {
+    "url": "https://github.com/aiapp/baas-mcp/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/mbaas-inc"
+  }
+}
