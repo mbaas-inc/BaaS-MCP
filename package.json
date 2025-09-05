@@ -55,11 +55,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aiapp/baas-mcp.git"
+    "url": "https://github.com/mbaas-inc/BaaS-MCP.git"
   },
-  "homepage": "https://docs.aiapp.link",
+  "homepage": "https://www.mbaas.kr",
   "bugs": {
-    "url": "https://github.com/aiapp/baas-mcp/issues"
+    "url": "https://github.com/mbaas-inc/BaaS-MCP/issues"
   },
   "funding": {
     "type": "github",
