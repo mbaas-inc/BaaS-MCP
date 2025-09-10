@@ -4,7 +4,7 @@ AIApp BaaS 인증 시스템의 회원가입 API 명세서입니다.
 
 ## 기본 정보
 
-- **URL**: `/signup`
+- **URL**: `/account/signup`
 - **Method**: `POST`
 - **Content-Type**: `application/json`
 - **Description**: 새로운 사용자 계정을 생성합니다. 각 프로젝트는 독립적인 사용자 관리를 위해 project_id가 필수입니다.
@@ -122,13 +122,13 @@ AIApp BaaS 인증 시스템의 회원가입 API 명세서입니다.
 ```javascript
 const signup = async (userData) => {
   try {
-    const response = await fetch('https://api.aiapp.link/signup', {
+    const response = await fetch('https://api.aiapp.link/account/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userData),
-      credentials: 'include' // 쿠키 포함
+      credentials: 'include', // 쿠키 포함
+      body: JSON.stringify(userData)
     });
 
     if (!response.ok) {

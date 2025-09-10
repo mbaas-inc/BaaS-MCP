@@ -23,7 +23,7 @@ BaaS MCP를 사용하면서 발생할 수 있는 일반적인 문제들과 해�
 ```javascript
 // ✅ 올바른 설정
 const response = await axios.post(
-  'https://api.aiapp.link/login',
+  'https://api.aiapp.link/account/login',
   loginData,
   { 
     withCredentials: true  // 중요: 쿠키 포함 설정
@@ -34,7 +34,7 @@ const response = await axios.post(
 #### 2. fetch 사용 시
 ```javascript
 // ✅ 올바른 설정
-const response = await fetch('https://api.aiapp.link/login', {
+const response = await fetch('https://api.aiapp.link/account/login', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ app.use(cors({
 
 **증상**:
 ```
-Access to fetch at 'https://api.aiapp.link/login' from origin 'https://your-app.com' 
+Access to fetch at 'https://api.aiapp.link/account/login' from origin 'https://your-app.com' 
 has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
 ```
 
@@ -212,13 +212,13 @@ export const AuthProvider = ({ children }) => {
 **해결 방법**:
 ```javascript
 // ✅ 쿠키 방식 (권장) - 자동으로 헤더에 포함됨
-const response = await fetch('https://api.aiapp.link/info', {
+const response = await fetch('https://api.aiapp.link/account/info', {
   credentials: 'include'  // 쿠키가 자동으로 Authorization 헤더로 변환됨
 });
 
 // 또는 수동으로 토큰 추가 (권장하지 않음)
 const token = localStorage.getItem('access_token');
-const response = await fetch('https://api.aiapp.link/info', {
+const response = await fetch('https://api.aiapp.link/account/info', {
   headers: {
     'Authorization': `Bearer ${token}`
   }

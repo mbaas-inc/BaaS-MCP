@@ -109,7 +109,7 @@ const handleSubmit = async () => {
     };
 
     const response = await axios.post(
-      `${props.apiEndpoint}/login`,
+      `${props.apiEndpoint}/account/login`,
       loginData
     );
 
@@ -340,7 +340,7 @@ export default defineComponent({
         };
 
         const response = await axios.post(
-          `${props.apiEndpoint}/login`,
+          `${props.apiEndpoint}/account/login`,
           loginData
         );
 
@@ -449,7 +449,7 @@ export const useAuthStore = defineStore('auth', {
       this.error = null;
 
       try {
-        const response = await axios.post('/login', credentials, {
+        const response = await axios.post('/account/login', credentials, {
           withCredentials: true
         });
 
@@ -569,4 +569,4 @@ const form = ref({
 - [Vue 3 인증 컴포저블](../vue/auth-composable.md)
 - [React 인증 컴포넌트](../react/auth-components.md)
 - [쿠키 설정 가이드](../../security/cookies.md)
-- [로그인 API 명세](../../api/auth/login.md)
+- [로그인 API 명세](../../api/auth/account/login.md)

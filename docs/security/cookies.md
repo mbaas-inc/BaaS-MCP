@@ -62,7 +62,7 @@ app.use(cors({
 }));
 
 // 로그인 라우트 예시
-app.post('/login', async (req, res) => {
+app.post('/account/login', async (req, res) => {
   try {
     // 인증 로직...
     const token = generateJWT(user);
@@ -97,7 +97,7 @@ app.post('/login', async (req, res) => {
 ### Next.js API 라우트
 
 ```typescript
-// pages/api/auth/login.ts 또는 app/api/auth/login/route.ts
+// pages/api/auth/account/login.ts 또는 app/api/auth/account/login/route.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { cookies } from 'next/headers';
 
@@ -155,7 +155,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/login")
+@app.post("/account/login")
 async def login(credentials: LoginCredentials, response: Response):
     try:
         # 인증 로직...
@@ -191,7 +191,7 @@ async def login(credentials: LoginCredentials, response: Response):
 
 ```javascript
 // 쿠키 포함 요청
-const response = await fetch('https://api.aiapp.link/login', {
+const response = await fetch('https://api.aiapp.link/account/login', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -214,7 +214,7 @@ axios.defaults.withCredentials = true;
 axios.defaults.baseURL = 'https://api.aiapp.link';
 
 // 또는 개별 요청
-const response = await axios.post('/login', {
+const response = await axios.post('/account/login', {
   user_id: 'johndoe',
   user_pw: 'password123'
 }, {
@@ -361,7 +361,7 @@ document.cookie
 
 ```bash
 # 로그인 요청
-curl -c cookies.txt -X POST https://api.aiapp.link/login \
+curl -c cookies.txt -X POST https://api.aiapp.link/account/login \
   -H "Content-Type: application/json" \
   -d '{"user_id": "test", "user_pw": "password"}'
 
@@ -369,12 +369,12 @@ curl -c cookies.txt -X POST https://api.aiapp.link/login \
 cat cookies.txt
 
 # 쿠키로 인증 API 호출
-curl -b cookies.txt https://api.aiapp.link/info
+curl -b cookies.txt https://api.aiapp.link/account/info
 ```
 
 ## 관련 문서
 
 - [JWT 토큰 관리](jwt.md)
 - [CORS 설정 가이드](cors.md)
-- [인증 API 명세](../api/auth/login.md)
+- [인증 API 명세](../api/auth/account/login.md)
 - [Next.js 인증 미들웨어](../templates/nextjs/auth-middleware.md)

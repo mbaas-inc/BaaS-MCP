@@ -55,7 +55,7 @@ class AuthManager {
         this.loading = true;
         
         try {
-            const response = await fetch(`${this.config.apiEndpoint}/info`, {
+            const response = await fetch(`${this.config.apiEndpoint}/account/info`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -90,7 +90,7 @@ class AuthManager {
                 project_id: this.config.projectId
             };
             
-            const response = await fetch(`${this.config.apiEndpoint}/login`, {
+            const response = await fetch(`${this.config.apiEndpoint}/account/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ class AuthManager {
         
         // 로그인 페이지로 리디렉션 (선택사항)
         if (this.config.redirectOnLogout !== false) {
-            window.location.href = this.config.loginUrl || '/login';
+            window.location.href = this.config.loginUrl || '/account/login';
         }
     }
     
@@ -505,7 +505,7 @@ class AuthManager {
         
         function showLoginForm() {
             // 로그인 폼을 모달이나 페이지로 표시
-            window.location.href = '/login';
+            window.location.href = '/account/login';
         }
         
         function logout() {
@@ -537,7 +537,7 @@ class RouteGuard {
     constructor(authManager, config = {}) {
         this.auth = authManager;
         this.config = {
-            loginUrl: '/login',
+            loginUrl: '/account/login',
             unauthorizedUrl: '/unauthorized',
             defaultUrl: '/',
             ...config
@@ -628,7 +628,7 @@ class RouteGuard {
 
 // 사용 예제
 const routeGuard = new RouteGuard(auth, {
-    loginUrl: '/login',
+    loginUrl: '/account/login',
     defaultUrl: '/dashboard'
 });
 
@@ -641,8 +641,8 @@ routeGuard.protect([
 
 // 퍼블릭 라우트 설정 (로그인 후 접근 제한)
 routeGuard.public([
-    '/login',
-    '/signup'
+    '/account/login',
+    '/account/signup'
 ]);
 
 // 로그인 성공 후 리디렉션
@@ -1076,8 +1076,8 @@ const securityManager = new SecurityManager(auth);
 
 ## 관련 문서
 
-- [순수 JavaScript 로그인 폼](./login-form.md)
-- [순수 JavaScript 회원가입 폼](./signup-form.md)
+- [순수 JavaScript 로그인 폼](./account/login-form.md)
+- [순수 JavaScript 회원가입 폼](./account/signup-form.md)
 - [jQuery 연동 예제](./jquery-example.md)
 - [React 인증 시스템](../react/auth-components.md)
 - [Vue 인증 시스템](../vue/auth-composable.md)

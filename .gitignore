@@ -77,6 +77,7 @@ temp/
 # Internal documentation (not for public release)
 DEVELOPMENT.md
 ARCHITECTURE.md
+CLAUDE.md
 
 # Keep only public-facing documentation
 # README.md - ✅ Public

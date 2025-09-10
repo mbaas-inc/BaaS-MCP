@@ -67,7 +67,7 @@ export function useAuth() {
    */
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/info');
+      const response = await axios.get('/account/info');
       if (response.data.success) {
         user.value = response.data.data;
         error.value = null;
@@ -88,7 +88,7 @@ export function useAuth() {
     error.value = null;
 
     try {
-      const response = await axios.post('/login', credentials);
+      const response = await axios.post('/account/login', credentials);
       
       if (response.data.success) {
         await fetchUser();
@@ -124,7 +124,7 @@ export function useAuth() {
     }
 
     try {
-      const response = await axios.post('/signup', data);
+      const response = await axios.post('/account/signup', data);
       
       if (response.data.success) {
         return response.data.data;
@@ -167,7 +167,7 @@ export function useAuth() {
       
       // 로그인 페이지로 이동
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        window.location.href = '/account/login';
       }
     } catch (err) {
       console.error('Logout error:', err);
@@ -230,7 +230,7 @@ export function useAuthGuard() {
   if (!loading.value && !isAuthenticated.value) {
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
-      window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+      window.location.href = `/account/login?redirect=${encodeURIComponent(currentPath)}`;
     }
   }
 
@@ -432,7 +432,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
-      path: '/login',
+      path: '/account/login',
       component: () => import('@/views/LoginView.vue')
     },
     {
@@ -453,11 +453,11 @@ router.beforeEach((to, from, next) => {
   
   // 인증이 필요한 페이지
   if (to.meta.requiresAuth && !isAuthenticated.value) {
-    return next('/login');
+    return next('/account/login');
   }
   
   // 이미 로그인한 상태에서 로그인 페이지 접근
-  if (to.path === '/login' && isAuthenticated.value) {
+  if (to.path === '/account/login' && isAuthenticated.value) {
     return next('/dashboard');
   }
   
@@ -609,7 +609,7 @@ const scheduleTokenRefresh = (expiresIn: number) => {
 
 ## 관련 문서
 
-- [Vue 3 로그인 컴포넌트](../vue/login-component.md)
+- [Vue 3 로그인 컴포넌트](../vue/account/login-component.md)
 - [React 인증 시스템](../react/auth-components.md)
-- [사용자 정보 조회 API](../../api/auth/info.md)
-- [로그인 API 명세](../../api/auth/login.md)
+- [사용자 정보 조회 API](../../api/auth/account/info.md)
+- [로그인 API 명세](../../api/auth/account/login.md)

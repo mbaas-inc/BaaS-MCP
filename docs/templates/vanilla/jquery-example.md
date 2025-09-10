@@ -142,7 +142,7 @@ $(document).ready(function() {
                 
                 // 로그인 요청
                 $.ajax({
-                    url: settings.apiEndpoint + '/login',
+                    url: settings.apiEndpoint + '/account/login',
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(loginData),
@@ -384,7 +384,7 @@ $(document).ready(function() {
                 console.log('회원가입 성공:', data);
                 showSignupAlert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.', 'success');
                 setTimeout(function() {
-                    window.location.href = '/login';
+                    window.location.href = '/account/login';
                 }, 2000);
             },
             onError: function(error) {
@@ -502,7 +502,7 @@ $(document).ready(function() {
         
         // 회원가입 요청
         $.ajax({
-            url: settings.apiEndpoint + '/signup',
+            url: settings.apiEndpoint + '/account/signup',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(signupData),
@@ -753,7 +753,7 @@ $(document).ready(function() {
         onSuccess: function(data) {
             // 성공 후 로그인 페이지로 이동
             setTimeout(function() {
-                window.location.href = '/login';
+                window.location.href = '/account/login';
             }, 2000);
         }
     });
@@ -815,7 +815,7 @@ $(document).ready(function() {
             });
             
             return this.request({
-                url: '/login',
+                url: '/account/login',
                 method: 'POST',
                 data: JSON.stringify(data)
             });
@@ -828,7 +828,7 @@ $(document).ready(function() {
             });
             
             return this.request({
-                url: '/signup',
+                url: '/account/signup',
                 method: 'POST',
                 data: JSON.stringify(data)
             });
@@ -837,7 +837,7 @@ $(document).ready(function() {
         // 사용자 정보 조회
         getUserInfo: function() {
             return this.request({
-                url: '/info',
+                url: '/account/info',
                 method: 'GET'
             });
         },
@@ -958,7 +958,7 @@ $(document).ready(function() {
         // 인증 상태 확인
         requireAuth: function(options) {
             const settings = $.extend({
-                redirectUrl: '/login',
+                redirectUrl: '/account/login',
                 onUnauthorized: function() {
                     window.location.href = settings.redirectUrl;
                 }
@@ -1009,7 +1009,7 @@ $(document).ready(function() {
     $('#signupForm').aiappSignup({
         onSuccess: function(data) {
             alert('회원가입 성공!');
-            window.location.href = '/login';
+            window.location.href = '/account/login';
         },
         onError: function(error) {
             alert('회원가입 실패: ' + error.message);
@@ -1018,7 +1018,7 @@ $(document).ready(function() {
     
     // 보호된 컨텐츠
     $('.protected-content').requireAuth({
-        redirectUrl: '/login'
+        redirectUrl: '/account/login'
     });
     
     // 직접 API 호출 예제
@@ -1100,8 +1100,8 @@ $('.require-auth').on('click', function(e) {
 
 ## 관련 문서
 
-- [순수 JavaScript 로그인 폼](./login-form.md)
-- [순수 JavaScript 회원가입 폼](./signup-form.md)
+- [순수 JavaScript 로그인 폼](./account/login-form.md)
+- [순수 JavaScript 회원가입 폼](./account/signup-form.md)
 - [인증 상태 관리자](./auth-manager.md)
 - [React 인증 컴포넌트](../react/auth-components.md)
 - [Vue 인증 시스템](../vue/auth-composable.md)

@@ -163,7 +163,7 @@ const API_ENDPOINT = API_ENDPOINTS[process.env.NODE_ENV] || API_ENDPOINTS.produc
 
 ```javascript
 // Fetch API
-fetch(API_ENDPOINT + '/login', {
+fetch(API_ENDPOINT + '/account/login', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   credentials: 'include', // 쿠키 포함
@@ -172,7 +172,7 @@ fetch(API_ENDPOINT + '/login', {
 
 // Axios
 axios.defaults.withCredentials = true;
-axios.post(API_ENDPOINT + '/login', loginData);
+axios.post(API_ENDPOINT + '/account/login', loginData);
 ```
 
 ### 에러 처리
@@ -221,7 +221,7 @@ axios.interceptors.response.use(
   error => {
     if (error.response?.status === 401) {
       // 토큰 만료 시 로그인 페이지로 이동
-      window.location.href = '/login';
+      window.location.href = '/account/login';
     }
     return Promise.reject(error);
   }

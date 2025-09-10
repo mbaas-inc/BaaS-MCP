@@ -106,7 +106,7 @@ export const LoginForm: React.FC = () => {
 
     try {
       const response = await axios.post(
-        'https://api.aiapp.link/login',
+        'https://api.aiapp.link/account/login',
         formData,
         { withCredentials: true }
       );
@@ -244,7 +244,7 @@ const AIAppAuth = {
   checkAuthStatus: function() {
     return new Promise((resolve, reject) => {
       $.ajax({
-        url: this.config.apiEndpoint + '/info',
+        url: this.config.apiEndpoint + '/account/info',
         method: 'GET',
         xhrFields: {
           withCredentials: true
@@ -267,7 +267,7 @@ const AIAppAuth = {
   login: function(userId, password) {
     return new Promise((resolve, reject) => {
       $.ajax({
-        url: this.config.apiEndpoint + '/login',
+        url: this.config.apiEndpoint + '/account/login',
         method: 'POST',
         contentType: 'application/json',
         xhrFields: {
@@ -550,7 +550,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // 서브도메인에서 테넌트 정보 가져오기
     const fetchTenantInfo = async () => {
       try {
-        const response = await fetch('/api/tenant/info');
+        const response = await fetch('/api/tenant/account/info');
         const tenantData = await response.json();
         setTenant(tenantData);
       } catch (error) {

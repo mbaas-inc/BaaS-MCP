@@ -4,7 +4,7 @@ AIApp BaaS 인증 시스템의 사용자 정보 조회 API 명세서입니다.
 
 ## 기본 정보
 
-- **URL**: `/info`
+- **URL**: `/account/info`
 - **Method**: `GET`
 - **Authorization**: Bearer Token 또는 Cookie 인증 필요
 - **Description**: 현재 로그인한 사용자의 정보를 조회합니다. JWT 토큰에 포함된 project_id를 기반으로 해당 프로젝트의 사용자 정보만 반환됩니다.
@@ -23,7 +23,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ```javascript
 // Bearer Token 방식
-fetch('https://api.aiapp.link/info', {
+fetch('https://api.aiapp.link/account/info', {
   method: 'GET',
   headers: {
     'Authorization': `Bearer ${token}`,
@@ -32,7 +32,7 @@ fetch('https://api.aiapp.link/info', {
 });
 
 // Cookie 방식
-fetch('https://api.aiapp.link/info', {
+fetch('https://api.aiapp.link/account/info', {
   method: 'GET',
   credentials: 'include'
 });
@@ -90,7 +90,7 @@ fetch('https://api.aiapp.link/info', {
 ```javascript
 const getUserInfo = async (token) => {
   try {
-    const response = await fetch('https://api.aiapp.link/info', {
+    const response = await fetch('https://api.aiapp.link/account/info', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

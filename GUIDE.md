@@ -180,7 +180,7 @@ Cookie Domain: .aiapp.link
 
 ### 회원가입 API
 ```http
-POST /signup
+POST /account/signup
 Content-Type: application/json
 
 {
@@ -199,7 +199,7 @@ Content-Type: application/json
 
 ### 로그인 API
 ```http
-POST /login  
+POST /account/login  
 Content-Type: application/json
 
 {
@@ -216,7 +216,7 @@ Set-Cookie: access_token=eyJ...; HttpOnly; Secure; Domain=.aiapp.link; SameSite=
 
 ### 사용자 정보 API
 ```http
-GET /info
+GET /account/info
 Authorization: Bearer {access_token}
 ```
 
@@ -304,7 +304,7 @@ export const LoginComponent = ({ onSuccess, onError, className }: LoginProps) =>
 
     try {
       const response = await axios.post(
-        'https://api.aiapp.link/login',
+        'https://api.aiapp.link/account/login',
         form,
         { withCredentials: true }
       );

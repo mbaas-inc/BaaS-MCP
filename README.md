@@ -88,9 +88,9 @@ MCP 서버가 자동으로:
 
 운영 중인 AIApp BaaS 인증 API:
 - **Base URL**: https://api.aiapp.link
-- **회원가입**: POST /signup
-- **로그인**: POST /login  
-- **사용자 정보**: GET /info
+- **회원가입**: POST /account/signup
+- **로그인**: POST /account/login  
+- **사용자 정보**: GET /account/info
 
 ## 지원 프레임워크
 

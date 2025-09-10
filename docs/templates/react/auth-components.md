@@ -43,7 +43,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         project_id: projectId
       };
 
-      const response = await axios.post('/login', loginData, {
+      const response = await axios.post('/account/login', loginData, {
         withCredentials: true
       });
 
@@ -238,7 +238,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({
         ...(customFields.length > 0 && { data: form.data })
       };
 
-      const response = await axios.post('/signup', signupData);
+      const response = await axios.post('/account/signup', signupData);
 
       if (response.data.success) {
         onSuccess?.(response.data.data);
@@ -441,7 +441,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/info');
+      const response = await axios.get('/account/info');
       if (response.data.success) {
         setUser(response.data.data);
       }
@@ -451,14 +451,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const login = async (credentials: any) => {
-    const response = await axios.post('/login', credentials);
+    const response = await axios.post('/account/login', credentials);
     if (response.data.success) {
       await fetchUser();
     }
   };
 
   const signup = async (data: any) => {
-    const response = await axios.post('/signup', data);
+    const response = await axios.post('/account/signup', data);
     return response.data;
   };
 
@@ -467,7 +467,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // await axios.post('/logout'); // 로그아웃 API 있는 경우
     } finally {
       setUser(null);
-      window.location.href = '/login';
+      window.location.href = '/account/login';
     }
   };
 
@@ -534,7 +534,7 @@ const SignupPage = () => {
   const handleSignupSuccess = (userData: any) => {
     console.log('회원가입 성공:', userData);
     alert('회원가입이 완료되었습니다. 로그인해주세요.');
-    window.location.href = '/login';
+    window.location.href = '/account/login';
   };
 
   return (

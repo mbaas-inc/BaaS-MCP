@@ -231,7 +231,7 @@ AIApp BaaS와 연동되는 순수 HTML과 JavaScript를 사용한 로그인 폼 
             }
             
             async login(credentials) {
-                const response = await fetch(`${CONFIG.API_ENDPOINT}/login`, {
+                const response = await fetch(`${CONFIG.API_ENDPOINT}/account/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -352,7 +352,7 @@ export class LoginManager {
                 project_id: this.config.projectId
             };
             
-            const response = await fetch(`${this.config.apiEndpoint}/login`, {
+            const response = await fetch(`${this.config.apiEndpoint}/account/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -425,7 +425,7 @@ export class LoginManager {
     </div>
 
     <script type="module">
-        import { LoginManager } from './login.js';
+        import { LoginManager } from './account/login.js';
         
         const loginManager = new LoginManager({
             projectId: 'your-project-id-here',
@@ -471,7 +471,7 @@ class AuthChecker {
     
     async checkAuthStatus() {
         try {
-            const response = await fetch(`${this.apiEndpoint}/info`, {
+            const response = await fetch(`${this.apiEndpoint}/account/info`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -681,8 +681,8 @@ class SecurityUtils {
 
 ## 관련 문서
 
-- [순수 JavaScript 회원가입 폼](./signup-form.md)
+- [순수 JavaScript 회원가입 폼](./account/signup-form.md)
 - [인증 상태 관리자](./auth-manager.md)
 - [jQuery 연동 예제](./jquery-example.md)
 - [React 로그인 컴포넌트](../react/auth-components.md)
-- [Vue 로그인 컴포넌트](../vue/login-component.md)
+- [Vue 로그인 컴포넌트](../vue/account/login-component.md)

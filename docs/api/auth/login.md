@@ -4,7 +4,7 @@ AIApp BaaS 인증 시스템의 로그인 API 명세서입니다.
 
 ## 기본 정보
 
-- **URL**: `/login`
+- **URL**: `/account/login`
 - **Method**: `POST`
 - **Content-Type**: `application/json`
 - **Description**: 사용자 인증 후 JWT 토큰을 발급하고 쿠키를 설정합니다. 각 프로젝트는 독립적인 인증을 위해 project_id가 필수입니다.
@@ -97,7 +97,7 @@ Set-Cookie: access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secu
 ```javascript
 const login = async (credentials) => {
   try {
-    const response = await fetch('https://api.aiapp.link/login', {
+    const response = await fetch('https://api.aiapp.link/account/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

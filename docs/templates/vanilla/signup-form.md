@@ -398,7 +398,7 @@ AIApp BaaS와 연동되는 순수 HTML과 JavaScript를 사용한 회원가입 �
                         
                         // 성공 후 처리
                         setTimeout(() => {
-                            window.location.href = '/login';
+                            window.location.href = '/account/login';
                         }, 2000);
                         
                         // 커스텀 이벤트 발생
@@ -561,11 +561,12 @@ AIApp BaaS와 연동되는 순수 HTML과 JavaScript를 사용한 회원가입 �
             }
             
             async signup(data) {
-                const response = await fetch(`${CONFIG.API_ENDPOINT}/signup`, {
+                const response = await fetch(`${CONFIG.API_ENDPOINT}/account/signup`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include', // 쿠키 포함
                     body: JSON.stringify(data)
                 });
                 
@@ -693,7 +694,7 @@ export class SignupManager {
             apiEndpoint: 'https://api.aiapp.link',
             projectId: config.projectId || '[PROJECT_ID]',
             customFields: config.customFields || [],
-            redirectUrl: config.redirectUrl || '/login',
+            redirectUrl: config.redirectUrl || '/account/login',
             ...config
         };
         
@@ -724,11 +725,12 @@ export class SignupManager {
                 ...(userData.data && { data: userData.data })
             };
             
-            const response = await fetch(`${this.config.apiEndpoint}/signup`, {
+            const response = await fetch(`${this.config.apiEndpoint}/account/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // 쿠키 포함
                 body: JSON.stringify(signupData)
             });
             
@@ -1101,7 +1103,7 @@ class MultiStepSignup {
 
 ## 관련 문서
 
-- [순수 JavaScript 로그인 폼](./login-form.md)
+- [순수 JavaScript 로그인 폼](./account/login-form.md)
 - [인증 상태 관리자](./auth-manager.md)
 - [jQuery 연동 예제](./jquery-example.md)
 - [React 인증 컴포넌트](../react/auth-components.md)

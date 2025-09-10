@@ -25,7 +25,7 @@ const PROJECT_ID = "[PROJECT_ID]"; // 실제 프로젝트 ID로 변경
 
 ## 🚀 인증 플로우
 
-### 1단계: 회원가입 (POST /signup)
+### 1단계: 회원가입 (POST /account/signup)
 
 새로운 사용자를 프로젝트에 등록합니다.
 
@@ -43,7 +43,7 @@ const signupData = {
   }
 };
 
-const response = await fetch('https://api.aiapp.link/signup', {
+const response = await fetch('https://api.aiapp.link/account/signup', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   credentials: 'include',
@@ -64,7 +64,7 @@ const response = await fetch('https://api.aiapp.link/signup', {
 }
 ```
 
-### 2단계: 로그인 (POST /login)
+### 2단계: 로그인 (POST /account/login)
 
 사용자 인증 후 JWT 토큰을 받고 쿠키에 자동 저장됩니다.
 
@@ -75,7 +75,7 @@ const loginData = {
   project_id: PROJECT_ID // 필수
 };
 
-const response = await fetch('https://api.aiapp.link/login', {
+const response = await fetch('https://api.aiapp.link/account/login', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   credentials: 'include', // 쿠키 포함
@@ -93,12 +93,12 @@ const response = await fetch('https://api.aiapp.link/login', {
 Set-Cookie: access_token=eyJ...; HttpOnly; Secure; Domain=.aiapp.link; SameSite=None; Max-Age=86400
 ```
 
-### 3단계: 사용자 정보 조회 (GET /info)
+### 3단계: 사용자 정보 조회 (GET /account/info)
 
 로그인 상태에서 현재 사용자 정보를 가져옵니다.
 
 ```javascript
-const response = await fetch('https://api.aiapp.link/info', {
+const response = await fetch('https://api.aiapp.link/account/info', {
   method: 'GET',
   credentials: 'include' // 쿠키의 JWT 토큰 사용
 });
@@ -131,14 +131,14 @@ sequenceDiagram
     participant A as AIApp API
     participant B as 브라우저
 
-    C->>A: POST /signup (project_id 포함)
+    C->>A: POST /account/signup (project_id 포함)
     A-->>C: 회원가입 완료
 
-    C->>A: POST /login (project_id 포함)
+    C->>A: POST /account/login (project_id 포함)
     A->>B: JWT 토큰을 HttpOnly 쿠키로 저장
     A-->>C: 로그인 성공
 
-    C->>A: GET /info (쿠키 자동 전송)
+    C->>A: GET /account/info (쿠키 자동 전송)
     A->>A: JWT 토큰 검증 및 project_id 확인
     A-->>C: 사용자 정보 반환
 
@@ -174,7 +174,7 @@ const handleApiResponse = async (response) => {
     switch (response.status) {
       case 401:
         // 인증 실패 - 로그인 페이지로 리디렉션
-        window.location.href = '/login';
+        window.location.href = '/account/login';
         break;
       case 422:
         // 입력값 오류
@@ -196,7 +196,7 @@ const handleApiResponse = async (response) => {
 ```javascript
 const checkAuthStatus = async () => {
   try {
-    const response = await fetch('https://api.aiapp.link/info', {
+    const response = await fetch('https://api.aiapp.link/account/info', {
       credentials: 'include'
     });
     
