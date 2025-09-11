@@ -2,6 +2,7 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { BaaSDocsRepository, AdvancedSearchOptions } from "../repository/baas-docs.repository.js";
 import { Category, categories } from "../document/types.js";
 import { SearchMode } from "../constants/search-mode.js";
+import { parseKeywords, parseQuery, parseCategory, logParameters } from "../utils/parameter-parser.js";
 
 export function createSearchDocumentsTool(repository: BaaSDocsRepository, projectId?: string | null) {
   return {
@@ -33,21 +34,28 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
     },
     handler: async (args: any): Promise<CallToolResult> => {
       try {
-        const { keywords, query, category, limit = 5 } = args;
+        // 디버깅을 위한 파라미터 로깅
+        logParameters('search-documents', args);
         
-        // 키워드 배열을 우선적으로 사용
-        let searchKeywords = keywords || [];
-        let searchQuery = '';
+        // 안전하게 파라미터 파싱
+        const searchKeywords = parseKeywords(args.keywords);
+        const searchQuery = parseQuery(args.query);
+        const category = parseCategory(args.category);
+        const limit = typeof args.limit === 'number' ? args.limit : 5;
+        
+        let finalSearchQuery = '';
+        let finalKeywords: string[] = [];
         
         // keywords 배열이 있으면 우선 사용
         if (searchKeywords.length > 0) {
-          searchQuery = searchKeywords.join(' ');
+          finalKeywords = searchKeywords;
+          finalSearchQuery = searchKeywords.join(' ');
         } 
         // 폴백: query 문자열 사용
-        else if (query && typeof query === 'string' && query.trim() !== '') {
-          searchQuery = query;
+        else if (searchQuery.length > 0) {
+          finalSearchQuery = searchQuery;
           // query를 간단히 키워드로 분할
-          searchKeywords = query.toLowerCase()
+          finalKeywords = searchQuery.toLowerCase()
             .replace(/[^\w\s가-힣]/g, ' ')
             .split(/\s+/)
             .filter(term => term.length > 1);
@@ -58,7 +66,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
             content: [
               {
                 type: "text",
-                text: `검색 키워드가 필요합니다. 다음과 같이 사용해주세요:\n\n키워드 배열 사용 (권장):\n- keywords: ['로그인', 'React']\n- keywords: ['JWT', '토큰']\n- keywords: ['쿠키', '설정']\n\n문장 사용 (폴백):\n- query: "React 로그인 컴포넌트"\n- query: "JWT 토큰 설정"\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
+                text: `검색 키워드가 필요합니다. 다음과 같이 사용해주세요:\n\n키워드 배열 사용 (권장):\n- keywords: ['로그인', 'React']\n- keywords: ['JWT', '토큰']\n- keywords: ['쿠키', '설정']\n\n문장 사용 (폴백):\n- query: "React 로그인 컴포넌트"\n- query: "JWT 토큰 설정"\n\n현재 받은 파라미터:\n- keywords: ${JSON.stringify(args.keywords)} (타입: ${typeof args.keywords})\n- query: ${JSON.stringify(args.query)} (타입: ${typeof args.query})\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
               }
             ]
           };
@@ -66,8 +74,8 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
         
         // 새로운 고급 검색 기능을 기본으로 사용
         const results = repository.searchDocumentsAdvanced({
-          query: searchQuery,
-          category,
+          query: finalSearchQuery,
+          category: category as Category,
           limit: Math.min(limit, 10),
           searchMode: SearchMode.BALANCED,
           useWeights: true,
@@ -75,7 +83,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
         });
 
         if (results.length === 0) {
-          const searchTerm = searchKeywords.length > 0 ? searchKeywords.join(', ') : searchQuery;
+          const searchTerm = finalKeywords.length > 0 ? finalKeywords.join(', ') : finalSearchQuery;
           return {
             content: [
               {
@@ -86,7 +94,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
           };
         }
 
-        const searchTerm = searchKeywords.length > 0 ? searchKeywords.join(', ') : searchQuery;
+        const searchTerm = finalKeywords.length > 0 ? finalKeywords.join(', ') : finalSearchQuery;
         let responseText = `"${searchTerm}" 검색 결과 (${results.length}개 문서):\n\n`;
 
         results.forEach((result, index) => {
@@ -249,7 +257,23 @@ export function createGetDocumentsByCategory(repository: BaaSDocsRepository) {
     },
     handler: async (args: any): Promise<CallToolResult> => {
       try {
-        const { category, limit = 10 } = args;
+        // 디버깅을 위한 파라미터 로깅
+        logParameters('get-documents-by-category', args);
+        
+        const category = parseCategory(args.category);
+        const limit = typeof args.limit === 'number' ? args.limit : 10;
+        
+        if (!category) {
+          const availableCategories = repository.getAllCategories();
+          return {
+            content: [
+              {
+                type: "text",
+                text: `카테고리가 필요합니다.\n\n현재 받은 파라미터:\n- category: ${JSON.stringify(args.category)} (타입: ${typeof args.category})\n\n사용 가능한 카테고리:\n${availableCategories.map(cat => `- ${cat}`).join('\n')}`
+              }
+            ]
+          };
+        }
         
         const documents = repository.getDocumentsByCategory(category as Category);
         const limitedDocs = documents.slice(0, limit);

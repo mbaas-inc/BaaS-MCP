@@ -1,6 +1,7 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { BaaSDocsRepository } from "../repository/baas-docs.repository.js";
 import { SearchMode } from "../constants/search-mode.js";
+import { parseKeywords, logParameters } from "../utils/parameter-parser.js";
 
 /**
  * 키워드 배열에서 feature와 framework 파라미터를 자동 추론
@@ -100,10 +101,16 @@ export function createImplementationGuideTool(repository: BaaSDocsRepository, pr
     },
     handler: async (args: any): Promise<CallToolResult> => {
       try {
-        let { feature, framework, keywords } = args;
+        // 디버깅을 위한 파라미터 로깅
+        logParameters('get-implementation-guide', args);
+        
+        // 안전하게 파라미터 파싱
+        const keywords = parseKeywords(args.keywords);
+        let feature = typeof args.feature === 'string' ? args.feature : undefined;
+        let framework = typeof args.framework === 'string' ? args.framework : undefined;
 
         // 키워드 배열이 있으면 파라미터 자동 추론
-        if (keywords && Array.isArray(keywords) && keywords.length > 0) {
+        if (keywords.length > 0) {
           const inferred = inferParametersFromKeywords(keywords);
           feature = feature || inferred.feature;
           framework = framework || inferred.framework;
@@ -113,7 +120,7 @@ export function createImplementationGuideTool(repository: BaaSDocsRepository, pr
         let searchTerms: string[] = [];
         
         // 키워드 배열 우선 사용
-        if (keywords && Array.isArray(keywords) && keywords.length > 0) {
+        if (keywords.length > 0) {
           searchTerms.push(...keywords);
         }
         
@@ -161,7 +168,7 @@ export function createImplementationGuideTool(repository: BaaSDocsRepository, pr
         responseText += `## 검색 조건\n\n`;
         if (feature) responseText += `- **기능**: ${feature}\n`;
         if (framework) responseText += `- **프레임워크**: ${framework}\n`;
-        if (keywords && keywords.length > 0) responseText += `- **키워드**: ${keywords.join(', ')}\n`;
+        if (keywords.length > 0) responseText += `- **키워드**: ${keywords.join(', ')}\n`;
         responseText += `\n---\n\n`;
 
         // 문서 내용 추가
