@@ -126,15 +126,16 @@ export class BaaSDocsRepository {
       })
       .filter(result => result !== null) as SearchResult[];
 
-    // 키워드 필터링
+    // 키워드 필터링 - BM25 검색 시에는 이미 키워드 기반 검색이 되었으므로 추가 필터링 불필요
     let filteredResults = searchResults;
-    if (options.keywords && options.keywords.length > 0) {
-      filteredResults = searchResults.filter(result => {
-        return options.keywords!.some(keyword =>
-          result.document.hasKeyword(keyword)
-        );
-      });
-    }
+    // keywords는 이미 BM25 검색에서 query로 사용되었으므로 별도 필터링 제거
+    // if (options.keywords && options.keywords.length > 0) {
+    //   filteredResults = searchResults.filter(result => {
+    //     return options.keywords!.some(keyword =>
+    //       result.document.hasKeyword(keyword)
+    //     );
+    //   });
+    // }
 
     // 최소 점수 필터링
     if (options.minScore !== undefined) {
