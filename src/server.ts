@@ -56,7 +56,18 @@ async function main() {
   // Register tools
   server.tool(
     "search-documents",
-    "AIApp BaaS 인증 시스템 문서를 검색합니다. API 규격, 구현 예제, 보안 가이드, 프레임워크별 템플릿을 키워드로 검색할 수 있습니다.",
+    `AIApp BaaS 인증 시스템 문서를 키워드 배열로 검색합니다.
+
+사용 예시:
+- 로그인 React 컴포넌트: keywords=['로그인', 'React']
+- JWT 토큰 설정: keywords=['JWT', '토큰']
+- HTML 회원가입 폼: keywords=['회원가입', 'HTML']
+
+키워드 배열 사용 (권장):
+- keywords: ['로그인', 'React'], ['JWT', '토큰'], ['쿠키', '설정']
+
+문장 사용 (폴백):
+- query: "React 로그인 컴포넌트"`,
     searchDocumentsTool.inputSchema,
     searchDocumentsTool.handler
   );
@@ -77,7 +88,23 @@ async function main() {
 
   server.tool(
     "get-implementation-guide",
-    "BaaS 인증 기능 구현을 위한 API 문서와 템플릿 가이드를 제공합니다. 로그인, 회원가입, 내정보, 로그아웃 기능을 React, Vue, Next.js, Vanilla JavaScript로 구현할 때 필요한 문서를 검색합니다.",
+    `BaaS 인증 기능 구현 가이드를 키워드 배열로 검색합니다.
+
+사용 예시:
+- 로그인 HTML 페이지: keywords=['로그인', 'HTML']
+- React 회원가입: keywords=['회원가입', 'React']
+- Vue.js 인증: keywords=['인증', 'Vue']
+
+파라미터:
+- keywords (권장): 구현 키워드 배열
+- feature (선택): login|signup|info|logout - keywords에서 자동 추출
+- framework (선택): react|vue|nextjs|vanilla - keywords에서 자동 추출
+
+키워드에서 자동 매핑:
+- '로그인', 'login' → feature: 'login'
+- '회원가입', 'signup' → feature: 'signup'
+- 'HTML', 'javascript' → framework: 'vanilla'
+- 'React', '리액트' → framework: 'react'`,
     implementationGuideTool.inputSchema,
     implementationGuideTool.handler
   );

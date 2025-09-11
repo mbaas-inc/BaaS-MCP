@@ -2,10 +2,77 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { BaaSDocsRepository } from "../repository/baas-docs.repository.js";
 import { SearchMode } from "../constants/search-mode.js";
 
+/**
+ * 키워드 배열에서 feature와 framework 파라미터를 자동 추론
+ */
+function inferParametersFromKeywords(keywords: string[]): {
+  feature?: string;
+  framework?: string;
+} {
+  const featureMap: Record<string, string> = {
+    '로그인': 'login',
+    'login': 'login',
+    'signin': 'login',
+    'sign-in': 'login',
+    '인증': 'login',
+    '회원가입': 'signup',
+    'signup': 'signup',
+    'register': 'signup',
+    'registration': 'signup',
+    '가입': 'signup',
+    '내정보': 'info',
+    'info': 'info',
+    'profile': 'info',
+    '프로필': 'info',
+    '로그아웃': 'logout',
+    'logout': 'logout',
+    'signout': 'logout',
+    'sign-out': 'logout'
+  };
+  
+  const frameworkMap: Record<string, string> = {
+    'html': 'vanilla',
+    'vanilla': 'vanilla',
+    'javascript': 'vanilla',
+    'js': 'vanilla',
+    'react': 'react',
+    '리액트': 'react',
+    'vue': 'vue',
+    'vuejs': 'vue',
+    '뷰': 'vue',
+    'nextjs': 'nextjs',
+    'next.js': 'nextjs',
+    'next': 'nextjs',
+    '넥스트': 'nextjs'
+  };
+  
+  let feature: string | undefined;
+  let framework: string | undefined;
+  
+  for (const keyword of keywords) {
+    const lower = keyword.toLowerCase().trim();
+    
+    if (!feature && featureMap[lower]) {
+      feature = featureMap[lower];
+    }
+    
+    if (!framework && frameworkMap[lower]) {
+      framework = frameworkMap[lower];
+    }
+    
+    // 이미 둘 다 찾았으면 중단
+    if (feature && framework) {
+      break;
+    }
+  }
+  
+  return { feature, framework };
+}
+
 export interface ImplementationGuideOptions {
+  keywords?: string[];
   feature?: 'login' | 'signup' | 'info' | 'logout';
   framework?: 'react' | 'vue' | 'nextjs' | 'vanilla';
-  keywords?: string;
 }
 
 export function createImplementationGuideTool(repository: BaaSDocsRepository, projectId?: string | null) {
@@ -13,48 +80,53 @@ export function createImplementationGuideTool(repository: BaaSDocsRepository, pr
     inputSchema: {
       type: "object" as const,
       properties: {
+        keywords: {
+          type: "array",
+          items: { type: "string" },
+          description: "구현 키워드 배열. 예: ['로그인', 'HTML'], ['회원가입', 'React'], ['인증', 'Vue']"
+        },
         feature: {
           type: "string",
           enum: ["login", "signup", "info", "logout"],
-          description: "구현할 BaaS 기능. login(로그인), signup(회원가입), info(내정보), logout(로그아웃)"
+          description: "구현할 BaaS 기능 (keywords에서 자동 추출 시도). login(로그인), signup(회원가입), info(내정보), logout(로그아웃)"
         },
         framework: {
           type: "string", 
           enum: ["react", "vue", "nextjs", "vanilla"],
-          description: "사용할 프레임워크. react, vue, nextjs, vanilla 중 선택"
-        },
-        keywords: {
-          type: "string",
-          description: "추가 검색 키워드 (선택사항)"
+          description: "사용할 프레임워크 (keywords에서 자동 추출 시도). react, vue, nextjs, vanilla(HTML) 중 선택"
         }
       },
       required: []
     },
     handler: async (args: any): Promise<CallToolResult> => {
       try {
-        const { feature, framework, keywords } = args;
+        let { feature, framework, keywords } = args;
+
+        // 키워드 배열이 있으면 파라미터 자동 추론
+        if (keywords && Array.isArray(keywords) && keywords.length > 0) {
+          const inferred = inferParametersFromKeywords(keywords);
+          feature = feature || inferred.feature;
+          framework = framework || inferred.framework;
+        }
 
         // 검색 쿼리 구성
-        let searchQueries: string[] = [];
+        let searchTerms: string[] = [];
         
-        if (feature && framework) {
-          searchQueries.push(`${feature} ${framework}`);
-        } else if (feature) {
-          searchQueries.push(feature);
-        } else if (framework) {
-          searchQueries.push(framework);
+        // 키워드 배열 우선 사용
+        if (keywords && Array.isArray(keywords) && keywords.length > 0) {
+          searchTerms.push(...keywords);
         }
         
-        if (keywords) {
-          searchQueries.push(keywords);
-        }
+        // feature와 framework 추가
+        if (feature) searchTerms.push(feature);
+        if (framework) searchTerms.push(framework);
         
         // 기본 검색어가 없으면 전체 검색
-        if (searchQueries.length === 0) {
-          searchQueries.push("auth authentication");
+        if (searchTerms.length === 0) {
+          searchTerms.push("auth", "authentication");
         }
 
-        const finalQuery = searchQueries.join(' ');
+        const finalQuery = searchTerms.join(' ');
 
         // 관련 문서 검색
         const searchResults = repository.searchDocumentsAdvanced({
@@ -89,7 +161,7 @@ export function createImplementationGuideTool(repository: BaaSDocsRepository, pr
         responseText += `## 검색 조건\n\n`;
         if (feature) responseText += `- **기능**: ${feature}\n`;
         if (framework) responseText += `- **프레임워크**: ${framework}\n`;
-        if (keywords) responseText += `- **추가 키워드**: ${keywords}\n`;
+        if (keywords && keywords.length > 0) responseText += `- **키워드**: ${keywords.join(', ')}\n`;
         responseText += `\n---\n\n`;
 
         // 문서 내용 추가

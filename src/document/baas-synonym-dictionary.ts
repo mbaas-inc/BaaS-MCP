@@ -1,33 +1,68 @@
 export class BaaSSynonymDictionary {
   private readonly dictionary: Record<string, string[]> = {
     // BaaS 핵심 인증 기능
-    "로그인": ["login", "signin", "auth"],
-    "로그아웃": ["logout", "signout"],
-    "회원가입": ["signup", "register", "join"],
-    "인증": ["authentication", "auth"],
+    "로그인": ["login", "signin", "sign-in", "auth", "인증", "로그인페이지", "login page"],
+    "로그아웃": ["logout", "signout", "sign-out"],
+    "회원가입": ["signup", "register", "join", "registration", "가입", "회원가입페이지", "signup page"],
+    "인증": ["authentication", "auth", "login", "signin"],
     
     // 사용자 정보 (모두 info API로 매핑)
-    "내정보": ["info", "myinfo", "account info"],
+    "내정보": ["info", "myinfo", "account info", "user info"],
     "프로필": ["profile", "user profile", "info"],
     "사용자정보": ["user info", "account", "info"],
     "마이페이지": ["mypage", "my page", "info"],
     "계정정보": ["account info", "info"],
     
-    // 인증 방식
-    "토큰": ["token", "jwt", "bearer"],
-    "쿠키": ["cookie", "session"],
+    // 인증 방식 및 보안
+    "토큰": ["token", "jwt", "bearer", "access_token", "authorization"],
+    "쿠키": ["cookie", "session", "credentials", "withCredentials"],
+    "보안": ["security", "secure", "safety"],
+    "에러": ["error", "exception", "오류", "실패"],
+    "검증": ["validation", "verify", "check"],
     
-    // 프레임워크 (코드 생성용)
-    "React": ["react", "리액트", "jsx", "tsx"],
-    "Vue": ["vue", "뷰", "vuejs"],
-    "Next.js": ["nextjs", "next", "넥스트"],
-    "바닐라": ["vanilla", "javascript", "js"],
+    // 프레임워크 및 기술 스택
+    "react": ["React", "리액트", "jsx", "tsx", "컴포넌트", "component"],
+    "vue": ["Vue", "뷰", "vuejs", "vue.js"],
+    "nextjs": ["Next.js", "next", "넥스트", "서버사이드"],
+    "vanilla": ["바닐라", "javascript", "js", "html", "순수 자바스크립트"],
+    "typescript": ["ts", "타입스크립트", "type"],
+    "tailwind": ["tailwindcss", "css", "스타일링"],
+    
+    // 페이지 및 컴포넌트
+    "페이지": ["page", "화면", "screen"],
+    "컴포넌트": ["component", "comp", "요소", "element"],
+    "폼": ["form", "양식", "입력폼"],
+    "버튼": ["button", "btn", "클릭"],
+    "입력": ["input", "field", "텍스트필드"],
+    
+    // API 및 통신
+    "api": ["API", "endpoint", "서버", "backend"],
+    "요청": ["request", "call", "호출"],
+    "응답": ["response", "result", "결과"],
+    "데이터": ["data", "정보", "정보"],
     
     // 기본 CRUD (BaaS API와 매핑)
-    "생성": ["create", "add", "new"],
-    "조회": ["get", "fetch", "read"],
-    "수정": ["update", "edit", "modify"],
-    "삭제": ["delete", "remove"],
+    "생성": ["create", "add", "new", "추가"],
+    "조회": ["get", "fetch", "read", "가져오기"],
+    "수정": ["update", "edit", "modify", "변경"],
+    "삭제": ["delete", "remove", "제거"],
+    
+    // 상태 및 처리
+    "로딩": ["loading", "로드", "처리중"],
+    "성공": ["success", "완료", "성공적"],
+    "실패": ["failure", "fail", "에러", "오류"],
+    
+    // 설정 및 구성
+    "설정": ["config", "configuration", "setup"],
+    "환경": ["environment", "env"],
+    "프로젝트": ["project", "app", "application"],
+    
+    // 한국어 특화 동의어
+    "만들기": ["create", "build", "구현", "개발"],
+    "구현": ["implement", "develop", "만들기", "개발"],
+    "사용": ["use", "usage", "활용"],
+    "예시": ["example", "샘플", "sample", "데모"],
+    "가이드": ["guide", "tutorial", "설명서", "문서"]
   };
 
   /**

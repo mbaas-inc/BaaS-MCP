@@ -8,9 +8,14 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
     inputSchema: {
       type: "object" as const,
       properties: {
+        keywords: {
+          type: "array",
+          items: { type: "string" },
+          description: "검색할 키워드 배열. 예: ['로그인', 'React'], ['JWT', '토큰'], ['쿠키', '설정']"
+        },
         query: {
           type: "string",
-          description: "검색할 키워드나 질문. 예: 'React 로그인 컴포넌트', 'JWT 토큰 설정', '쿠키 설정 방법'"
+          description: "키워드 배열 대신 사용할 검색 문장 (비권장). 예: 'React 로그인 컴포넌트'"
         },
         category: {
           type: "string",
@@ -18,25 +23,42 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
           description: "검색할 문서 카테고리 (선택사항). api, templates, security, examples, dev, frameworks, errors, config 중 선택"
         },
         limit: {
-      type: "number",
+          type: "number",
           description: "반환할 검색 결과 수 (기본값: 5, 최대: 10)",
           minimum: 1,
           maximum: 10
         }
       },
-      required: ["query"]
+      required: []
     },
     handler: async (args: any): Promise<CallToolResult> => {
       try {
-        const { query, category, limit = 5 } = args;
+        const { keywords, query, category, limit = 5 } = args;
         
-        // query 파라미터 validation
-        if (!query || typeof query !== 'string' || query.trim() === '') {
+        // 키워드 배열을 우선적으로 사용
+        let searchKeywords = keywords || [];
+        let searchQuery = '';
+        
+        // keywords 배열이 있으면 우선 사용
+        if (searchKeywords.length > 0) {
+          searchQuery = searchKeywords.join(' ');
+        } 
+        // 폴백: query 문자열 사용
+        else if (query && typeof query === 'string' && query.trim() !== '') {
+          searchQuery = query;
+          // query를 간단히 키워드로 분할
+          searchKeywords = query.toLowerCase()
+            .replace(/[^\w\s가-힣]/g, ' ')
+            .split(/\s+/)
+            .filter(term => term.length > 1);
+        } 
+        // 둘 다 없으면 에러
+        else {
           return {
             content: [
               {
                 type: "text",
-                text: `검색어가 필요합니다. 다음과 같이 사용해주세요:\n\n예시:\n- "React 로그인 컴포넌트"\n- "JWT 토큰 설정"\n- "쿠키 설정 방법"\n- "Vue.js 회원가입"\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
+                text: `검색 키워드가 필요합니다. 다음과 같이 사용해주세요:\n\n키워드 배열 사용 (권장):\n- keywords: ['로그인', 'React']\n- keywords: ['JWT', '토큰']\n- keywords: ['쿠키', '설정']\n\n문장 사용 (폴백):\n- query: "React 로그인 컴포넌트"\n- query: "JWT 토큰 설정"\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
               }
             ]
           };
@@ -44,7 +66,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
         
         // 새로운 고급 검색 기능을 기본으로 사용
         const results = repository.searchDocumentsAdvanced({
-          query,
+          query: searchQuery,
           category,
           limit: Math.min(limit, 10),
           searchMode: SearchMode.BALANCED,
@@ -53,17 +75,19 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
         });
 
         if (results.length === 0) {
+          const searchTerm = searchKeywords.length > 0 ? searchKeywords.join(', ') : searchQuery;
           return {
             content: [
               {
                 type: "text",
-                text: `검색어 "${query}"에 대한 문서를 찾을 수 없습니다. 다른 키워드로 검색해보세요.\n\n사용 가능한 검색 키워드 예시:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
+                text: `검색어 "${searchTerm}"에 대한 문서를 찾을 수 없습니다. 다른 키워드로 검색해보세요.\n\n사용 가능한 검색 키워드 예시:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
               }
             ]
           };
         }
 
-        let responseText = `"${query}" 검색 결과 (${results.length}개 문서):\n\n`;
+        const searchTerm = searchKeywords.length > 0 ? searchKeywords.join(', ') : searchQuery;
+        let responseText = `"${searchTerm}" 검색 결과 (${results.length}개 문서):\n\n`;
 
         results.forEach((result, index) => {
           const doc = result.document;
