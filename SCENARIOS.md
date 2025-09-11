@@ -702,11 +702,9 @@ const usePermission = (requiredRole: UserRole) => {
 
 각 시나리오별 상세한 도움이 필요하시면:
 
-- 📧 Email: scenarios@aiapp.link  
+- 📧 Email: mbaas.tech@gmail.com  
 - 💬 Discord: [프로젝트별 채널]
 - 📚 예제 저장소: https://github.com/aiapp/baas-examples
-- 🎥 비디오 튜토리얼: https://youtube.com/@aiapp
-
 ---
 
 **Built with ❤️ by AIApp Team**

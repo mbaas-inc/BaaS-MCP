@@ -2,6 +2,19 @@
 
 AIApp BaaS와 연동되는 React 인증 컴포넌트 템플릿입니다.
 
+## ⚠️ BaaS API 필수 요구사항
+
+**LLM 코드 생성 시 반드시 포함해야 할 사항:**
+
+- **API Base URL**: `https://api.aiapp.link`
+- **project_id**: 필수 파라미터 - 없으면 401 에러 발생
+- **쿠키 설정**: `withCredentials: true` 또는 `credentials: 'include'` 필수
+- **로그인 응답**: `{ success, message, data: { access_token, token_type } }`
+- **회원가입 응답**: `{ success, message, data: { user_id, name, phone } }`
+- **사용자정보 응답**: `{ success, data: { id, user_id, name, phone, ... } }` (주의: data.data가 바로 사용자 객체)
+- **에러 응답**: `{ errorCode, message, detail: [...] }`
+- **회원가입 필수 필드**: `{ user_id, user_pw, name, phone, is_reserved, project_id }`
+
 ## 로그인 컴포넌트
 
 ### 기본 로그인 폼
@@ -51,11 +64,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         onSuccess?.(response.data.data);
       }
     } catch (err: any) {
-      const errorMessage = err.response?.status === 422 
-        ? '입력값을 확인해주세요.' 
-        : err.response?.status === 401 
-        ? '아이디 또는 비밀번호가 올바르지 않습니다.'
-        : '로그인에 실패했습니다.';
+      // ⚠️ BaaS API 에러 구조: { errorCode, message, detail }
+      const apiError = err.response?.data;
+      let errorMessage = '로그인에 실패했습니다.';
+      
+      if (apiError?.errorCode) {
+        // BaaS 에러 코드별 처리
+        switch (apiError.errorCode) {
+          case 'INVALID_USER':
+          case 'USER_NOT_FOUND':
+            errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.';
+            break;
+          case 'VALIDATION_ERROR':
+            errorMessage = apiError.detail?.[0]?.message || '입력값을 확인해주세요.';
+            break;
+          case 'UNAUTHORIZED':
+            errorMessage = 'project_id가 없거나 올바르지 않습니다.';
+            break;
+          default:
+            errorMessage = apiError.message || '로그인에 실패했습니다.';
+        }
+      }
       
       setError(errorMessage);
       onError?.(err);
@@ -244,15 +273,31 @@ export const SignupForm: React.FC<SignupFormProps> = ({
         onSuccess?.(response.data.data);
       }
     } catch (err: any) {
+      // ⚠️ BaaS API 에러 구조: { errorCode, message, detail }
+      const apiError = err.response?.data;
       let errorMessage = '회원가입에 실패했습니다.';
       
-      if (err.response?.status === 422) {
-        const details = err.response.data.detail;
-        if (Array.isArray(details) && details.length > 0) {
-          errorMessage = details[0].msg || '입력값을 확인해주세요.';
+      if (apiError?.errorCode) {
+        // BaaS 에러 코드별 처리
+        switch (apiError.errorCode) {
+          case 'USER_ALREADY_EXISTS':
+            errorMessage = '이미 사용 중인 아이디입니다.';
+            break;
+          case 'VALIDATION_ERROR':
+            errorMessage = apiError.detail?.[0]?.message || '입력값을 확인해주세요.';
+            break;
+          case 'PASSWORD_TOO_SHORT':
+            errorMessage = '비밀번호는 최소 8자 이상이어야 합니다.';
+            break;
+          case 'INVALID_PHONE':
+            errorMessage = '전화번호 형식이 올바르지 않습니다.';
+            break;
+          case 'UNAUTHORIZED':
+            errorMessage = 'project_id가 없거나 올바르지 않습니다.';
+            break;
+          default:
+            errorMessage = apiError.message || '회원가입에 실패했습니다.';
         }
-      } else if (err.response?.status === 409) {
-        errorMessage = '이미 사용 중인 아이디입니다.';
       }
       
       setError(errorMessage);

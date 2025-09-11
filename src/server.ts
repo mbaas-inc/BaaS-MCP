@@ -8,6 +8,7 @@ import {
   createGetDocumentByIdTool,
   createGetDocumentsByCategory 
 } from "./tools/document-search.tools.js";
+import { createGetImplementationGuideTool } from "./tools/implementation-guide.tools.js";
 
 // Project ID 파싱
 function parseProjectId(): string | null {
@@ -50,6 +51,7 @@ async function main() {
   const searchDocumentsTool = createSearchDocumentsTool(docsRepository, projectId);
   const getDocumentByIdTool = createGetDocumentByIdTool(docsRepository, projectId);
   const getDocumentsByCategoryTool = createGetDocumentsByCategory(docsRepository);
+  const implementationGuideTool = createGetImplementationGuideTool(docsRepository, projectId);
 
   // Register tools
   server.tool(
@@ -71,6 +73,13 @@ async function main() {
     "카테고리별로 BaaS 인증 시스템 문서를 조회합니다. API, 템플릿, 보안, 예제, 개발 가이드 등의 카테고리로 필터링할 수 있습니다.",
     getDocumentsByCategoryTool.inputSchema,
     getDocumentsByCategoryTool.handler
+  );
+
+  server.tool(
+    "get-implementation-guide",
+    "BaaS 인증 기능 구현을 위한 API 문서와 템플릿 가이드를 제공합니다. 로그인, 회원가입, 내정보, 로그아웃 기능을 React, Vue, Next.js, Vanilla JavaScript로 구현할 때 필요한 문서를 검색합니다.",
+    implementationGuideTool.inputSchema,
+    implementationGuideTool.handler
   );
 
   // Project configuration tool

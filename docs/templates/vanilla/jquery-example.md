@@ -2,6 +2,16 @@
 
 AIApp BaaS와 jQuery를 사용한 인증 시스템 구현 예제입니다.
 
+## ⚠️ BaaS API 필수 요구사항
+
+**LLM 코드 생성 시 반드시 포함해야 할 사항:**
+
+- **API Base URL**: `https://api.aiapp.link`
+- **project_id**: 필수 파라미터 - 없으면 401 에러 발생
+- **쿠키 설정**: `xhrFields: { withCredentials: true }` 필수
+- **로그인 응답**: `{ success, message, data: { access_token, token_type } }`
+- **에러 응답**: `{ errorCode, message, detail: [...] }`
+
 ## 기본 jQuery 로그인 폼
 
 ### HTML 구조

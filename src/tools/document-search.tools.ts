@@ -1,6 +1,7 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { BaaSDocsRepository } from "../repository/baas-docs.repository.js";
+import { BaaSDocsRepository, AdvancedSearchOptions } from "../repository/baas-docs.repository.js";
 import { Category, categories } from "../document/types.js";
+import { SearchMode } from "../constants/search-mode.js";
 
 export function createSearchDocumentsTool(repository: BaaSDocsRepository, projectId?: string | null) {
   return {
@@ -17,7 +18,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
           description: "검색할 문서 카테고리 (선택사항). api, templates, security, examples, dev, frameworks, errors, config 중 선택"
         },
         limit: {
-          type: "number",
+      type: "number",
           description: "반환할 검색 결과 수 (기본값: 5, 최대: 10)",
           minimum: 1,
           maximum: 10
@@ -29,11 +30,27 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
       try {
         const { query, category, limit = 5 } = args;
         
-        const results = repository.searchDocuments(
+        // query 파라미터 validation
+        if (!query || typeof query !== 'string' || query.trim() === '') {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `검색어가 필요합니다. 다음과 같이 사용해주세요:\n\n예시:\n- "React 로그인 컴포넌트"\n- "JWT 토큰 설정"\n- "쿠키 설정 방법"\n- "Vue.js 회원가입"\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
+              }
+            ]
+          };
+        }
+        
+        // 새로운 고급 검색 기능을 기본으로 사용
+        const results = repository.searchDocumentsAdvanced({
           query,
-          Math.min(limit, 10),
-          category
-        );
+          category,
+          limit: Math.min(limit, 10),
+          searchMode: SearchMode.BALANCED,
+          useWeights: true,
+          useSynonyms: true,
+        });
 
         if (results.length === 0) {
           return {
@@ -225,7 +242,7 @@ export function createGetDocumentsByCategory(repository: BaaSDocsRepository) {
           };
         }
 
-        let responseText = `# ${category.toUpperCase()} 카테고리 문서 목록\n\n`;
+        let responseText = `# ${category?.toUpperCase() || 'UNKNOWN'} 카테고리 문서 목록\n\n`;
         responseText += `총 ${documents.length}개 문서 중 ${limitedDocs.length}개 표시\n\n`;
 
         limitedDocs.forEach((doc, index) => {

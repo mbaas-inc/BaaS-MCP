@@ -1,12 +1,16 @@
-import { MarkdownDocument, Category } from "./types.js";
+import { MarkdownDocument, Category, DocumentChunk } from "./types.js";
 
 export class BaaSDocument {
+  private chunks: DocumentChunk[] = [];
+
   constructor(
     private readonly keywordSet: Set<string>,
     private readonly document: MarkdownDocument,
     private readonly documentId: number,
     private readonly category: Category
-  ) {}
+  ) {
+    this.generateChunks();
+  }
 
   getId(): number {
     return this.documentId;
@@ -38,6 +42,98 @@ export class BaaSDocument {
 
   getMetadataKeywords(): string[] {
     return this.document.metadata.keywords;
+  }
+
+  getChunks(): DocumentChunk[] {
+    return this.chunks;
+  }
+
+  private generateChunks(): void {
+    const content = this.document.content;
+    const sections = this.splitIntoSections(content);
+    
+    let chunkId = 0;
+    sections.forEach((section, index) => {
+      if (section.text.trim().length > 100) {
+        const chunk: DocumentChunk = {
+          id: this.documentId,
+          chunkId: chunkId++,
+          originTitle: this.document.metadata.title,
+          text: this.addContext(section.text, section.header),
+          rawText: section.text,
+          wordCount: this.countWords(section.text),
+          estimatedTokens: this.estimateTokens(section.text),
+          headerStack: section.headerStack,
+          category: this.category
+        };
+        this.chunks.push(chunk);
+      }
+    });
+  }
+
+  private splitIntoSections(content: string): { text: string; header: string; headerStack: string[] }[] {
+    const sections: { text: string; header: string; headerStack: string[] }[] = [];
+    const lines = content.split('\n');
+    
+    let currentSection = '';
+    let currentHeader = this.document.metadata.title;
+    let headerStack: string[] = [this.document.metadata.title];
+    
+    for (const line of lines) {
+      const headingMatch = line.match(/^(#{1,6})\s*(.+)$/);
+      
+      if (headingMatch) {
+        // Save previous section
+        if (currentSection.trim()) {
+          sections.push({
+            text: currentSection.trim(),
+            header: currentHeader,
+            headerStack: [...headerStack]
+          });
+        }
+        
+        // Start new section
+        const level = headingMatch[1].length;
+        const title = headingMatch[2].trim();
+        
+        // Update header stack
+        headerStack = headerStack.slice(0, level);
+        headerStack[level - 1] = title;
+        
+        currentHeader = title;
+        currentSection = line + '\n';
+      } else {
+        currentSection += line + '\n';
+      }
+    }
+    
+    // Add last section
+    if (currentSection.trim()) {
+      sections.push({
+        text: currentSection.trim(),
+        header: currentHeader,
+        headerStack: [...headerStack]
+      });
+    }
+    
+    return sections;
+  }
+
+  private addContext(text: string, header: string): string {
+    return `# ${header}\n\n${text}`;
+  }
+
+  private countWords(text: string): number {
+    return text.split(/\s+/).filter(word => word.length > 0).length;
+  }
+
+  private estimateTokens(text: string): number {
+    // 대략적인 토큰 수 추정 (영어: 4자/토큰, 한국어: 2자/토큰)
+    const englishChars = text.match(/[a-zA-Z\s]/g)?.length || 0;
+    const koreanChars = text.match(/[가-힣]/g)?.length || 0;
+    const otherChars = text.length - englishChars - koreanChars;
+    
+    return Math.ceil(englishChars / 4 + koreanChars / 2 + otherChars / 3);
   }
 
   hasKeyword(keyword: string): boolean {

@@ -12,11 +12,11 @@ AIApp BaaS는 JWT 토큰을 HttpOnly 쿠키로 관리하여 XSS 공격을 방지
 
 ```javascript
 const cookieOptions = {
-  httpOnly: true,        // XSS 공격 방지
+  httpOnly: true,        // XSS 공격 방지 (JavaScript 접근 차단)
   secure: true,          // HTTPS 환경에서만 전송
   domain: '.aiapp.link', // 서브도메인 공유
-  sameSite: 'none',      // 크로스 도메인 허용
-  maxAge: 86400,         // 24시간 (초 단위)
+  sameSite: 'None',      // 크로스 도메인 허용 (대소문자 주의)
+  maxAge: 86400,         // 24시간 (1일, 초 단위)
   path: '/'              // 모든 경로에서 접근 가능
 };
 
@@ -82,8 +82,11 @@ app.post('/account/login', async (req, res) => {
     
     res.json({
       success: true,
-      message: '로그인 성공',
-      data: { user }
+      message: '로그인 완료',
+      data: {
+        access_token: token,
+        token_type: 'bearer'
+      }
     });
   } catch (error) {
     res.status(401).json({
@@ -112,7 +115,11 @@ export async function POST(request: Request) {
     
     const response = new Response(JSON.stringify({
       success: true,
-      message: '로그인 성공'
+      message: '로그인 완료',
+      data: {
+        access_token: token,
+        token_type: 'bearer'
+      }
     }), {
       status: 200,
       headers: {
@@ -178,8 +185,11 @@ async def login(credentials: LoginCredentials, response: Response):
         
         return {
             "success": True,
-            "message": "로그인 성공",
-            "data": {"user": user}
+            "message": "로그인 완료",
+            "data": {
+                "access_token": token,
+                "token_type": "bearer"
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=401, detail="로그인 실패")

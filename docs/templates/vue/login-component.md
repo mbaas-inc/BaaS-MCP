@@ -2,6 +2,17 @@
 
 AIApp BaaS와 연동되는 Vue 3 로그인 컴포넌트입니다.
 
+## ⚠️ BaaS API 필수 요구사항
+
+**LLM 코드 생성 시 반드시 포함해야 할 사항:**
+
+- **API Base URL**: `https://api.aiapp.link`
+- **project_id**: 필수 파라미터 - 없으면 401 에러 발생
+- **쿠키 설정**: `withCredentials: true` 또는 `credentials: 'include'` 필수
+- **로그인 응답**: `{ success, message, data: { access_token, token_type } }`
+- **사용자정보 응답**: `{ success, data: { id, user_id, name, phone, ... } }` (주의: data.data가 바로 사용자 객체)
+- **에러 응답**: `{ errorCode, message, detail: [...] }`
+
 ## 기본 로그인 컴포넌트
 
 ```vue
@@ -454,7 +465,8 @@ export const useAuthStore = defineStore('auth', {
         });
 
         if (response.data.success) {
-          this.user = response.data.data.user;
+          // ⚠️ 주의: BaaS API는 response.data.data가 바로 사용자 정보입니다
+          this.user = response.data.data;
           return response.data;
         }
       } catch (error: any) {

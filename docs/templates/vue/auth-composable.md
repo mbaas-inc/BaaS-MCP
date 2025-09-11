@@ -2,6 +2,19 @@
 
 AIApp BaaS와 연동되는 Vue 3 Composition API 인증 컴포저블입니다.
 
+## ⚠️ BaaS API 필수 요구사항
+
+**LLM 코드 생성 시 반드시 포함해야 할 사항:**
+
+- **API Base URL**: `https://api.aiapp.link`
+- **project_id**: 필수 파라미터 - 없으면 401 에러 발생
+- **쿠키 설정**: `withCredentials: true` 필수
+- **로그인 응답**: `{ success, message, data: { access_token, token_type } }`
+- **회원가입 응답**: `{ success, message, data: { user_id, name, phone } }`
+- **사용자정보 응답**: `{ success, data: { id, user_id, name, phone, ... } }` (주의: data.data가 바로 사용자 객체)
+- **에러 응답**: `{ errorCode, message, detail: [...] }`
+- **회원가입 필수 필드**: `{ user_id, user_pw, name, phone, is_reserved, project_id }`
+
 ## useAuth 컴포저블
 
 ```typescript
