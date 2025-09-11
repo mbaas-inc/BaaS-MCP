@@ -94,14 +94,12 @@ export function createImplementationGuideTool(repository: BaaSDocsRepository, pr
 
         // 문서 내용 추가
         searchResults.forEach((result, index) => {
-          const document = repository.findOneById(result.id);
-          if (document) {
-            responseText += `## 📄 ${document.getTitle()}\n\n`;
-            responseText += `**카테고리**: ${document.getCategory()}\n`;
-            responseText += `**설명**: ${document.getDescription()}\n\n`;
-            responseText += document.getContent() + "\n\n";
-            responseText += `---\n\n`;
-          }
+          const document = result.document;
+          responseText += `## 📄 ${document.getTitle()}\n\n`;
+          responseText += `**카테고리**: ${document.getCategory()}\n`;
+          responseText += `**설명**: ${document.getDescription()}\n\n`;
+          responseText += document.getContent() + "\n\n";
+          responseText += `---\n\n`;
         });
 
         return {
