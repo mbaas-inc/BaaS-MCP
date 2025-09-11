@@ -1,6 +1,6 @@
 {
   "name": "@mbaas/baas-mcp",
-  "version": "2.2.1",
+  "version": "2.2.3",
   "description": "AIApp BaaS 인증 시스템 MCP 서버 - AI 기반 문서 검색 및 코드 자동 생성",
   "type": "module",
   "main": "dist/server.js",

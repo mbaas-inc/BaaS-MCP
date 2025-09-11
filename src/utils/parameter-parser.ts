@@ -24,7 +24,7 @@ export function parseKeywords(keywords: any): string[] {
           return parsed.filter(k => typeof k === 'string' && k.trim().length > 0);
         }
       } catch (error) {
-        console.warn('Failed to parse keywords JSON:', trimmed, error);
+        console.error('Failed to parse keywords JSON:', trimmed, error);
       }
     }
     
@@ -63,7 +63,7 @@ export function parseCategory(category: any): string | undefined {
  * 디버깅을 위한 파라미터 로깅
  */
 export function logParameters(toolName: string, args: any): void {
-  console.log(`[${toolName}] Received parameters:`, {
+  console.error(`[${toolName}] Received parameters:`, {
     raw: args,
     types: Object.keys(args).reduce((acc, key) => {
       acc[key] = typeof args[key];
