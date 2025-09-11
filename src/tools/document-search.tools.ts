@@ -1,61 +1,31 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { BaaSDocsRepository, AdvancedSearchOptions } from "../repository/baas-docs.repository.js";
-import { Category, categories } from "../document/types.js";
+import { BaaSDocsRepository } from "../repository/baas-docs.repository.js";
+import { Category } from "../document/types.js";
 import { SearchMode } from "../constants/search-mode.js";
-import { parseKeywords, parseQuery, parseCategory, logParameters } from "../utils/parameter-parser.js";
+import { 
+  SearchDocumentsParams, 
+  GetDocumentByIdParams 
+} from "../schema/tool-schemas.js";
 
 export function createSearchDocumentsTool(repository: BaaSDocsRepository, projectId?: string | null) {
   return {
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        keywords: {
-          type: "array",
-          items: { type: "string" },
-          description: "검색할 키워드 배열. 예: ['로그인', 'React'], ['JWT', '토큰'], ['쿠키', '설정']"
-        },
-        query: {
-          type: "string",
-          description: "키워드 배열 대신 사용할 검색 문장 (비권장). 예: 'React 로그인 컴포넌트'"
-        },
-        category: {
-          type: "string",
-          enum: categories,
-          description: "검색할 문서 카테고리 (선택사항). api, templates, security, examples, dev, frameworks, errors, config 중 선택"
-        },
-        limit: {
-          type: "number",
-          description: "반환할 검색 결과 수 (기본값: 5, 최대: 10)",
-          minimum: 1,
-          maximum: 10
-        }
-      },
-      required: []
-    },
-    handler: async (args: any): Promise<CallToolResult> => {
+    handler: async (params: SearchDocumentsParams): Promise<CallToolResult> => {
       try {
-        // 디버깅을 위한 파라미터 로깅
-        logParameters('search-documents', args);
-        
-        // 안전하게 파라미터 파싱
-        const searchKeywords = parseKeywords(args.keywords);
-        const searchQuery = parseQuery(args.query);
-        const category = parseCategory(args.category);
-        const limit = typeof args.limit === 'number' ? args.limit : 5;
+        const { keywords, query, category, searchMode = SearchMode.BALANCED, limit = 5 } = params;
         
         let finalSearchQuery = '';
         let finalKeywords: string[] = [];
         
         // keywords 배열이 있으면 우선 사용
-        if (searchKeywords.length > 0) {
-          finalKeywords = searchKeywords;
-          finalSearchQuery = searchKeywords.join(' ');
+        if (keywords && keywords.length > 0) {
+          finalKeywords = keywords.filter(k => k.trim().length > 0);
+          finalSearchQuery = finalKeywords.join(' ');
         } 
         // 폴백: query 문자열 사용
-        else if (searchQuery.length > 0) {
-          finalSearchQuery = searchQuery;
+        else if (query && query.trim().length > 0) {
+          finalSearchQuery = query.trim();
           // query를 간단히 키워드로 분할
-          finalKeywords = searchQuery.toLowerCase()
+          finalKeywords = query.toLowerCase()
             .replace(/[^\w\s가-힣]/g, ' ')
             .split(/\s+/)
             .filter(term => term.length > 1);
@@ -66,7 +36,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
             content: [
               {
                 type: "text",
-                text: `검색 키워드가 필요합니다. 다음과 같이 사용해주세요:\n\n키워드 배열 사용 (권장):\n- keywords: ['로그인', 'React']\n- keywords: ['JWT', '토큰']\n- keywords: ['쿠키', '설정']\n\n문장 사용 (폴백):\n- query: "React 로그인 컴포넌트"\n- query: "JWT 토큰 설정"\n\n현재 받은 파라미터:\n- keywords: ${JSON.stringify(args.keywords)} (타입: ${typeof args.keywords})\n- query: ${JSON.stringify(args.query)} (타입: ${typeof args.query})\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
+                text: `검색 키워드가 필요합니다. 다음과 같이 사용해주세요:\n\n키워드 배열 사용 (권장):\n- keywords: ['로그인', 'React']\n- keywords: ['JWT', '토큰']\n- keywords: ['쿠키', '설정']\n\n문장 사용 (폴백):\n- query: "React 로그인 컴포넌트"\n- query: "JWT 토큰 설정"\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
               }
             ]
           };
@@ -77,7 +47,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
           query: finalSearchQuery,
           category: category as Category,
           limit: Math.min(limit, 10),
-          searchMode: SearchMode.BALANCED,
+          searchMode: searchMode,
           useWeights: true,
           useSynonyms: true,
         });
@@ -142,24 +112,9 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
 
 export function createGetDocumentByIdTool(repository: BaaSDocsRepository, projectId?: string | null) {
   return {
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        id: {
-          type: "number",
-          description: "조회할 문서의 ID (search-documents 결과에서 확인 가능)"
-        },
-        includeMetadata: {
-          type: "boolean",
-          description: "문서 메타데이터 포함 여부 (기본값: false)",
-          default: false
-        }
-      },
-      required: ["id"]
-    },
-    handler: async (args: any): Promise<CallToolResult> => {
+    handler: async (params: GetDocumentByIdParams): Promise<CallToolResult> => {
       try {
-        const { id, includeMetadata = false } = args;
+        const { id, includeMetadata = false } = params;
         
         const document = repository.getDocumentById(id);
         
@@ -236,94 +191,3 @@ export function createGetDocumentByIdTool(repository: BaaSDocsRepository, projec
   };
 }
 
-export function createGetDocumentsByCategory(repository: BaaSDocsRepository) {
-  return {
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        category: {
-          type: "string",
-          enum: categories,
-          description: "조회할 문서 카테고리. api, templates, security, examples, dev, frameworks, errors, config 중 선택"
-        },
-        limit: {
-          type: "number",
-          description: "반환할 문서 수 (기본값: 10)",
-          minimum: 1,
-          maximum: 20
-        }
-      },
-      required: ["category"]
-    },
-    handler: async (args: any): Promise<CallToolResult> => {
-      try {
-        // 디버깅을 위한 파라미터 로깅
-        logParameters('get-documents-by-category', args);
-        
-        const category = parseCategory(args.category);
-        const limit = typeof args.limit === 'number' ? args.limit : 10;
-        
-        if (!category) {
-          const availableCategories = repository.getAllCategories();
-          return {
-            content: [
-              {
-                type: "text",
-                text: `카테고리가 필요합니다.\n\n현재 받은 파라미터:\n- category: ${JSON.stringify(args.category)} (타입: ${typeof args.category})\n\n사용 가능한 카테고리:\n${availableCategories.map(cat => `- ${cat}`).join('\n')}`
-              }
-            ]
-          };
-        }
-        
-        const documents = repository.getDocumentsByCategory(category as Category);
-        const limitedDocs = documents.slice(0, limit);
-
-        if (limitedDocs.length === 0) {
-          const availableCategories = repository.getAllCategories();
-          return {
-            content: [
-              {
-                type: "text",
-                text: `"${category}" 카테고리에 해당하는 문서가 없습니다.\n\n사용 가능한 카테고리:\n${availableCategories.map(cat => `- ${cat}`).join('\n')}`
-              }
-            ]
-          };
-        }
-
-        let responseText = `# ${category?.toUpperCase() || 'UNKNOWN'} 카테고리 문서 목록\n\n`;
-        responseText += `총 ${documents.length}개 문서 중 ${limitedDocs.length}개 표시\n\n`;
-
-        limitedDocs.forEach((doc, index) => {
-          responseText += `## ${index + 1}. ${doc.getTitle()}\n`;
-          responseText += `**ID**: ${doc.getId()}\n`;
-          responseText += `**URL**: ${doc.getUrl()}\n`;
-          responseText += `**설명**: ${doc.getDescription()}\n\n`;
-          responseText += `---\n\n`;
-        });
-
-        if (documents.length > limit) {
-          responseText += `💡 **알림**: ${documents.length - limit}개의 추가 문서가 있습니다. limit 값을 늘려서 더 많은 문서를 조회할 수 있습니다.`;
-        }
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: responseText
-            }
-          ]
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `카테고리 문서 조회 중 오류가 발생했습니다: ${error instanceof Error ? error.message : String(error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-    }
-  };
-}

@@ -5,10 +5,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { createBaaSDocsRepository } from "./repository/createBaaSDocsRepository.js";
 import { 
   createSearchDocumentsTool,
-  createGetDocumentByIdTool,
-  createGetDocumentsByCategory 
+  createGetDocumentByIdTool
 } from "./tools/document-search.tools.js";
-import { createGetImplementationGuideTool } from "./tools/implementation-guide.tools.js";
+import {
+  SearchDocumentsSchema,
+  GetDocumentByIdSchema
+} from "./schema/tool-schemas.js";
 
 // Project ID 파싱
 function parseProjectId(): string | null {
@@ -50,64 +52,39 @@ async function main() {
   // Create tools
   const searchDocumentsTool = createSearchDocumentsTool(docsRepository, projectId);
   const getDocumentByIdTool = createGetDocumentByIdTool(docsRepository, projectId);
-  const getDocumentsByCategoryTool = createGetDocumentsByCategory(docsRepository);
-  const implementationGuideTool = createGetImplementationGuideTool(docsRepository, projectId);
 
   // Register tools
   server.tool(
     "search-documents",
-    `AIApp BaaS 인증 시스템 문서를 키워드 배열로 검색합니다.
+    `AIApp BaaS 인증 시스템 문서를 키워드 배열로 검색합니다. API 문서, 구현 가이드, 보안 가이드, 예제 코드 등 모든 문서를 통합 검색합니다.
 
 사용 예시:
 - 로그인 React 컴포넌트: keywords=['로그인', 'React']
 - JWT 토큰 설정: keywords=['JWT', '토큰']
 - HTML 회원가입 폼: keywords=['회원가입', 'HTML']
+- 보안 가이드: keywords=['보안'], category='security'
+- API 문서: keywords=['API'], category='api'
 
 키워드 배열 사용 (권장):
 - keywords: ['로그인', 'React'], ['JWT', '토큰'], ['쿠키', '설정']
 
+카테고리 필터링:
+- category: api, templates, security, examples, dev, frameworks, errors, config
+
 문장 사용 (폴백):
 - query: "React 로그인 컴포넌트"`,
-    searchDocumentsTool.inputSchema,
+    SearchDocumentsSchema,
     searchDocumentsTool.handler
   );
 
   server.tool(
     "get-document-by-id",
     "문서 ID로 특정 BaaS 인증 시스템 문서의 전체 내용을 조회합니다.",
-    getDocumentByIdTool.inputSchema,
+    GetDocumentByIdSchema,
     getDocumentByIdTool.handler
   );
 
-  server.tool(
-    "get-documents-by-category",
-    "카테고리별로 BaaS 인증 시스템 문서를 조회합니다. API, 템플릿, 보안, 예제, 개발 가이드 등의 카테고리로 필터링할 수 있습니다.",
-    getDocumentsByCategoryTool.inputSchema,
-    getDocumentsByCategoryTool.handler
-  );
 
-  server.tool(
-    "get-implementation-guide",
-    `BaaS 인증 기능 구현 가이드를 키워드 배열로 검색합니다.
-
-사용 예시:
-- 로그인 HTML 페이지: keywords=['로그인', 'HTML']
-- React 회원가입: keywords=['회원가입', 'React']
-- Vue.js 인증: keywords=['인증', 'Vue']
-
-파라미터:
-- keywords (권장): 구현 키워드 배열
-- feature (선택): login|signup|info|logout - keywords에서 자동 추출
-- framework (선택): react|vue|nextjs|vanilla - keywords에서 자동 추출
-
-키워드에서 자동 매핑:
-- '로그인', 'login' → feature: 'login'
-- '회원가입', 'signup' → feature: 'signup'
-- 'HTML', 'javascript' → framework: 'vanilla'
-- 'React', '리액트' → framework: 'react'`,
-    implementationGuideTool.inputSchema,
-    implementationGuideTool.handler
-  );
 
   // Project configuration tool
   server.tool(

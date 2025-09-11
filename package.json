@@ -1,6 +1,6 @@
 {
   "name": "@mbaas/baas-mcp",
-  "version": "2.2.3",
+  "version": "2.3.0",
   "description": "AIApp BaaS 인증 시스템 MCP 서버 - AI 기반 문서 검색 및 코드 자동 생성",
   "type": "module",
   "main": "dist/server.js",
@@ -43,7 +43,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.0"
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "mdast-util-to-string": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",

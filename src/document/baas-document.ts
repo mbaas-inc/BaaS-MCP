@@ -1,4 +1,5 @@
 import { MarkdownDocument, Category, DocumentChunk } from "./types.js";
+import { TokenEstimator } from "./token-estimator.js";
 
 export class BaaSDocument {
   private chunks: DocumentChunk[] = [];
@@ -49,26 +50,42 @@ export class BaaSDocument {
   }
 
   private generateChunks(): void {
+    const MAX_TOKENS_PER_CHUNK = 2000;
     const content = this.document.content;
-    const sections = this.splitIntoSections(content);
+    const estimatedTokens = this.estimateTokens(content);
     
-    let chunkId = 0;
-    sections.forEach((section, index) => {
-      if (section.text.trim().length > 100) {
-        const chunk: DocumentChunk = {
+    // 작은 문서는 단일 청크로 처리
+    if (estimatedTokens <= MAX_TOKENS_PER_CHUNK) {
+      this.chunks.push({
+        id: this.documentId,
+        chunkId: 0,
+        originTitle: this.document.metadata.title,
+        text: this.addContext(content, this.document.metadata.title),
+        rawText: content,
+        wordCount: this.countWords(content),
+        estimatedTokens: estimatedTokens,
+        headerStack: [this.document.metadata.title],
+        category: this.category
+      });
+    } else {
+      // 토큰 기반으로 문서를 청킹
+      const sections = this.splitIntoSections(content);
+      const chunks = this.splitByTokenLimit(sections, MAX_TOKENS_PER_CHUNK);
+      
+      chunks.forEach((chunk, index) => {
+        this.chunks.push({
           id: this.documentId,
-          chunkId: chunkId++,
+          chunkId: index,
           originTitle: this.document.metadata.title,
-          text: this.addContext(section.text, section.header),
-          rawText: section.text,
-          wordCount: this.countWords(section.text),
-          estimatedTokens: this.estimateTokens(section.text),
-          headerStack: section.headerStack,
+          text: this.addContext(chunk.text, chunk.header),
+          rawText: chunk.text,
+          wordCount: this.countWords(chunk.text),
+          estimatedTokens: this.estimateTokens(chunk.text),
+          headerStack: chunk.headerStack,
           category: this.category
-        };
-        this.chunks.push(chunk);
-      }
-    });
+        });
+      });
+    }
   }
 
   private splitIntoSections(content: string): { text: string; header: string; headerStack: string[] }[] {
@@ -119,6 +136,130 @@ export class BaaSDocument {
     return sections;
   }
 
+  /**
+   * 섹션들을 토큰 제한에 맞춰 청크로 분할
+   */
+  private splitByTokenLimit(
+    sections: { text: string; header: string; headerStack: string[] }[], 
+    maxTokens: number
+  ): { text: string; header: string; headerStack: string[] }[] {
+    const chunks: { text: string; header: string; headerStack: string[] }[] = [];
+    let currentChunk = '';
+    let currentTokens = 0;
+    let currentHeader = this.document.metadata.title;
+    let currentHeaderStack = [this.document.metadata.title];
+    
+    for (const section of sections) {
+      // 섹션 텍스트 길이 확인 (100자 미만은 스킵)
+      if (section.text.trim().length < 100) continue;
+      
+      const sectionTokens = this.estimateTokens(section.text);
+      
+      // 단일 섹션이 토큰 제한을 초과하는 경우
+      if (sectionTokens > maxTokens) {
+        // 현재 청크가 있으면 저장
+        if (currentChunk.trim()) {
+          chunks.push({
+            text: currentChunk.trim(),
+            header: currentHeader,
+            headerStack: [...currentHeaderStack]
+          });
+        }
+        
+        // 큰 섹션을 문단별로 분할
+        const paragraphs = this.splitSectionByParagraphs(section, maxTokens);
+        chunks.push(...paragraphs);
+        
+        // 리셋
+        currentChunk = '';
+        currentTokens = 0;
+        continue;
+      }
+      
+      // 현재 청크에 섹션 추가 가능한지 확인
+      if (currentTokens + sectionTokens > maxTokens && currentChunk.trim()) {
+        // 현재 청크 저장
+        chunks.push({
+          text: currentChunk.trim(),
+          header: currentHeader,
+          headerStack: [...currentHeaderStack]
+        });
+        
+        // 새 청크 시작
+        currentChunk = section.text;
+        currentTokens = sectionTokens;
+        currentHeader = section.header;
+        currentHeaderStack = section.headerStack;
+      } else {
+        // 현재 청크에 추가
+        if (currentChunk) {
+          currentChunk += '\n\n' + section.text;
+        } else {
+          currentChunk = section.text;
+          currentHeader = section.header;
+          currentHeaderStack = section.headerStack;
+        }
+        currentTokens += sectionTokens;
+      }
+    }
+    
+    // 마지막 청크 저장
+    if (currentChunk.trim()) {
+      chunks.push({
+        text: currentChunk.trim(),
+        header: currentHeader,
+        headerStack: [...currentHeaderStack]
+      });
+    }
+    
+    return chunks;
+  }
+
+  /**
+   * 큰 섹션을 문단별로 분할
+   */
+  private splitSectionByParagraphs(
+    section: { text: string; header: string; headerStack: string[] },
+    maxTokens: number
+  ): { text: string; header: string; headerStack: string[] }[] {
+    const paragraphs = section.text.split('\n\n').filter(p => p.trim().length > 0);
+    const chunks: { text: string; header: string; headerStack: string[] }[] = [];
+    let currentChunk = '';
+    let currentTokens = 0;
+    
+    for (const paragraph of paragraphs) {
+      const paragraphTokens = this.estimateTokens(paragraph);
+      
+      if (currentTokens + paragraphTokens > maxTokens && currentChunk.trim()) {
+        chunks.push({
+          text: currentChunk.trim(),
+          header: section.header,
+          headerStack: [...section.headerStack]
+        });
+        currentChunk = paragraph;
+        currentTokens = paragraphTokens;
+      } else {
+        if (currentChunk) {
+          currentChunk += '\n\n' + paragraph;
+        } else {
+          currentChunk = paragraph;
+        }
+        currentTokens += paragraphTokens;
+      }
+    }
+    
+    // 마지막 청크
+    if (currentChunk.trim()) {
+      chunks.push({
+        text: currentChunk.trim(),
+        header: section.header,
+        headerStack: [...section.headerStack]
+      });
+    }
+    
+    return chunks;
+  }
+
   private addContext(text: string, header: string): string {
     return `# ${header}\n\n${text}`;
   }
@@ -128,12 +269,7 @@ export class BaaSDocument {
   }
 
   private estimateTokens(text: string): number {
-    // 대략적인 토큰 수 추정 (영어: 4자/토큰, 한국어: 2자/토큰)
-    const englishChars = text.match(/[a-zA-Z\s]/g)?.length || 0;
-    const koreanChars = text.match(/[가-힣]/g)?.length || 0;
-    const otherChars = text.length - englishChars - koreanChars;
-    
-    return Math.ceil(englishChars / 4 + koreanChars / 2 + otherChars / 3);
+    return TokenEstimator.estimate(text);
   }
 
   hasKeyword(keyword: string): boolean {

@@ -49,30 +49,17 @@ AIApp BaaS 인증 시스템 MCP 서버
 
 ### `search-documents`
 
-- **설명**: AIApp BaaS 인증 시스템 문서를 키워드 배열로 검색합니다.
+- **설명**: AIApp BaaS 인증 시스템 문서를 키워드 배열로 검색합니다. API 문서, 구현 가이드, 보안 가이드, 예제 코드 등 모든 문서를 통합 검색합니다.
 - **파라미터**:
-  - `keywords: string[]` — 검색할 키워드 배열 (권장)
-  - `query: string` — 검색 문장 (폴백)
-
-### `get-implementation-guide`
-
-- **설명**: BaaS 인증 기능 구현 가이드를 키워드 배열로 검색합니다.
-- **파라미터**:
-  - `keywords: string[]` — 구현 키워드 배열
-  - `feature: string` — 구현할 기능 (login|signup|info|logout)
-  - `framework: string` — 사용할 프레임워크 (react|vue|nextjs|vanilla)
+  - `keywords: string[]` — 검색할 키워드 배열
+  - `category?: string` — 카테고리 필터 (api|templates|security|examples|dev|frameworks|errors|config)
+  - `searchMode?: string` — 검색 모드 (broad|balanced|precise)
 
 ### `get-document-by-id`
 
 - **설명**: 문서 ID로 특정 BaaS 인증 시스템 문서의 전체 내용을 조회합니다.
 - **파라미터**:
-  - `id: number` — 문서의 고유 ID
-
-### `get-documents-by-category`
-
-- **설명**: 카테고리별로 BaaS 인증 시스템 문서를 조회합니다.
-- **파라미터**:
-  - `category: string` — 문서 카테고리 (api|templates|security|examples|dev|frameworks|errors|config)
+  - `id: number` — 조회할 문서의 ID
 
 ### `get-project-config`
 
@@ -87,6 +74,7 @@ MIT License
 
 - 📧 Email: mbaas.tech@gmail.com
 - 🐛 버그 리포트: https://github.com/mbaas-inc/BaaS-MCP/issues
+- 📖 문서: https://docs.aiapp.link
 
 ---
 
