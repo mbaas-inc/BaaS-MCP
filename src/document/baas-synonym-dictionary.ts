@@ -9,9 +9,10 @@ export class BaaSSynonymDictionary {
     // 사용자 정보 (모두 info API로 매핑)
     "내정보": ["info", "myinfo", "account info", "user info"],
     "프로필": ["profile", "user profile", "info"],
-    "사용자정보": ["user info", "account", "info"],
+    "사용자정보": ["user info", "account", "info", "user", "profile", "account info", "user data"],
     "마이페이지": ["mypage", "my page", "info"],
-    "계정정보": ["account info", "info"],
+    "계정정보": ["account info", "info", "account"],
+    "사용자": ["user", "account", "member", "info", "profile"],
     
     // 인증 방식 및 보안
     "토큰": ["token", "jwt", "bearer", "access_token", "authorization"],
@@ -69,6 +70,7 @@ export class BaaSSynonymDictionary {
    * 특정 용어의 동의어 목록 반환
    */
   getSynonyms(term: string): string[] {
+    if (!term) return [];
     const normalizedTerm = term.toLowerCase().trim();
     return this.dictionary[normalizedTerm] || [];
   }
@@ -80,6 +82,7 @@ export class BaaSSynonymDictionary {
     const expandedTerms = new Set<string>();
     
     for (const term of terms) {
+      if (!term) continue;
       const normalizedTerm = term.toLowerCase().trim();
       expandedTerms.add(normalizedTerm);
       

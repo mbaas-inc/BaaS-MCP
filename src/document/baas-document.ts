@@ -273,6 +273,9 @@ export class BaaSDocument {
   }
 
   hasKeyword(keyword: string): boolean {
+    if (!keyword || keyword.trim().length === 0) {
+      return false;
+    }
     const normalizedKeyword = keyword.toLowerCase().trim();
     return this.keywordSet.has(normalizedKeyword) || 
            this.document.content.toLowerCase().includes(normalizedKeyword);

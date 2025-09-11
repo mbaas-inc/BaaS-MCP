@@ -81,17 +81,17 @@ export class BaaSDocsRepository {
 
     const searchMode = options.searchMode || SearchMode.BALANCED;
     
-    // BM25 계산
-    let bm25Results = this.bm25Calculator.calculate(queryTerms, searchMode);
-
-    // 카테고리 필터링
+    // 카테고리 필터링을 BM25 계산 이전에 적용
+    let documentsToSearch = this.documents;
     if (options.category) {
-      const categoryDocuments = this.documents.filter(doc => 
+      documentsToSearch = this.documents.filter(doc => 
         doc.getCategory() === options.category
       );
-      const categoryIds = new Set(categoryDocuments.map(doc => doc.getId()));
-      bm25Results = bm25Results.filter(result => categoryIds.has(result.id));
     }
+    
+    // 카테고리 필터된 문서들만으로 BM25 계산기 생성 및 계산
+    const filteredBM25Calculator = new BaaSBM25Calculator(documentsToSearch);
+    let bm25Results = filteredBM25Calculator.calculate(queryTerms, searchMode);
 
     // 가중치 적용
     let weightedResults: WeightedBM25Result[] = bm25Results.map(result => ({

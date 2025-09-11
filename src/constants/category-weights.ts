@@ -24,12 +24,24 @@ export const KEYWORD_WEIGHTS: Record<string, number> = {
   "login": 1.5,
   "signup": 1.5,
   "auth": 1.3,
+  "authentication": 1.3,
   "info": 1.3,
+  
+  // 한국어 인증 키워드 (높은 우선순위)
+  "인증": 1.5,
+  "로그인": 1.5,
+  "회원가입": 1.5,
+  "사용자정보": 1.3,
+  "사용자": 1.3,
   
   // 인증 관련
   "cookie": 1.2,
   "token": 1.2,
   "user": 1.2,
+  "profile": 1.2,
+  "account": 1.2,
+  "register": 1.2,
+  "signin": 1.2,
   
   // 기본값
   "default": 1.0,

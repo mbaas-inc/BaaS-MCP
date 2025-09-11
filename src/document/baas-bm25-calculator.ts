@@ -126,7 +126,7 @@ export class BaaSBM25Calculator {
         const score = Object.keys(tf)
           .map((term) => {
             const df = docFrequencies[term];
-            const idf = Math.log((this.N - df + 0.5) / (df + 0.5));
+            const idf = Math.max(0.001, Math.log((this.N - df + 0.5) / (df + 0.5)));
             const numerator = tf[term] * (config.k1 + 1);
             const denominator =
               tf[term] +
