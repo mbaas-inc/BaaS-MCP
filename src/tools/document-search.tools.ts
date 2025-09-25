@@ -130,7 +130,6 @@ export function createGetDocumentByIdTool(repository: BaaSDocsRepository, projec
         if (includeMetadata) {
           responseText += `**문서 정보**:\n`;
           responseText += `- ID: ${document.getId()}\n`;
-          responseText += `- 카테고리: ${document.getCategory()}\n`;
           responseText += `- URL: ${document.getUrl()}\n`;
           responseText += `- 설명: ${document.getDescription()}\n`;
           responseText += `- 키워드: ${Array.from(document.getKeywords()).slice(0, 10).join(', ')}\n\n`;

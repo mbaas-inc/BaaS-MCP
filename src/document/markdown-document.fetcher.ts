@@ -1,4 +1,4 @@
-import {categories, Category, DocumentMetadata, MarkdownDocument} from "./types.js";
+import {DocumentMetadata, MarkdownDocument} from "./types.js";
 
 export class MarkdownDocumentFetcher {
   async fetch(url: string): Promise<MarkdownDocument> {
@@ -70,13 +70,10 @@ export class MarkdownDocumentFetcher {
     const uniqueKeywords = Array.from(new Set(keywords))
       .filter(keyword => keyword.length > 2 && keyword.length < 50);
 
-    const category = this.extractCategoryFromUrl(url);
-
     return {
       title: title || 'Untitled',
       description: description || '',
       keywords: uniqueKeywords,
-      category,
     };
   }
 
@@ -136,19 +133,4 @@ export class MarkdownDocumentFetcher {
     }
   }
 
-  private extractCategoryFromUrl(url: string): Category {
-    try {
-      const urlObj = new URL(url);
-      
-      for (const category of categories) {
-        if (urlObj.pathname.includes(`/${category}/`)) {
-          return category;
-        }
-      }
-      
-      return "unknown";
-    } catch (error) {
-      return "unknown";
-    }
-  }
 }

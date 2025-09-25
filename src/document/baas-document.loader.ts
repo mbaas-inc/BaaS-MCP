@@ -30,9 +30,6 @@ export class BaaSDocumentLoader {
     return this.baasDocuments.get(url);
   }
 
-  getDocumentsByCategory(category: string): BaaSDocument[] {
-    return this.getDocuments().filter(doc => doc.getCategory() === category);
-  }
 
   private async collectAll() {
     await Promise.all(
@@ -73,8 +70,6 @@ export class BaaSDocumentLoader {
       }
     });
 
-    // Add category-specific keywords
-    keywordSet.add(docs.category);
     
     // Add common BaaS-related terms
     const baasTerms = [
@@ -95,8 +90,7 @@ export class BaaSDocumentLoader {
     const baasDocument = new BaaSDocument(
       keywordSet,
       document,
-      this.documentId++,
-      docs.category
+      this.documentId++
     );
 
     return baasDocument;

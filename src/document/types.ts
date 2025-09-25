@@ -3,14 +3,12 @@ export interface RawDocs {
   title: string;
   link: string;
   description: string;
-  category: Category;
 }
 
 export interface DocumentMetadata {
   title: string;
   description: string;
   keywords: string[];
-  category: Category;
 }
 
 export interface MarkdownDocument {
@@ -28,19 +26,4 @@ export interface DocumentChunk {
   wordCount: number;
   estimatedTokens: number; // 컨텍스트 포함 토큰 수
   headerStack: string[]; // 헤더 경로
-  category: Category;
 }
-
-export type Category =
-  | "api"
-  | "templates"
-  | "security"
-  | "integration"
-  | "unknown";
-
-export const categories: Category[] = [
-  "api",
-  "templates",
-  "security",
-  "integration"
-];

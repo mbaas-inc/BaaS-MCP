@@ -8,7 +8,6 @@ export interface SearchResult {
   document: BaaSDocument;
   score: number;
   relevantChunks: string[];
-  categoryWeight?: number;
   keywordWeight?: number;
   contextWeight?: number;
   chunkId?: number;
@@ -107,7 +106,6 @@ export class BaaSDocsRepository {
           document,
           score: result.finalScore,
           relevantChunks,
-          categoryWeight: result.categoryWeight,
           keywordWeight: result.keywordWeight,
           contextWeight: result.contextWeight,
           chunkId: result.chunkId,

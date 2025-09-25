@@ -1,26 +1,61 @@
-import {Category} from "./types.js";
 import {BM25Result} from "./baas-bm25-calculator.js";
 import {BaaSDocument} from "./baas-document.js";
-import {CATEGORY_WEIGHTS, CONTEXT_WEIGHTS, KEYWORD_WEIGHTS} from "../constants/category-weights.js";
+
+/**
+ * 키워드별 가중치 설정 (BaaS 핵심 기능만)
+ */
+const KEYWORD_WEIGHTS: Record<string, number> = {
+  // BaaS 핵심 기능
+  "login": 1.5,
+  "signup": 1.5,
+  "auth": 1.3,
+  "authentication": 1.3,
+  "info": 1.3,
+
+  // 한국어 인증 키워드 (높은 우선순위)
+  "인증": 1.5,
+  "로그인": 1.5,
+  "회원가입": 1.5,
+  "사용자정보": 1.3,
+  "사용자": 1.3,
+
+  // 인증 관련
+  "cookie": 1.2,
+  "token": 1.2,
+  "user": 1.2,
+  "profile": 1.2,
+  "account": 1.2,
+  "register": 1.2,
+  "signin": 1.2,
+
+  // 기본값
+  "default": 1.0,
+} as const;
+
+/**
+ * 컨텍스트별 가중치 설정 (단순화)
+ */
+const CONTEXT_WEIGHTS = {
+  title: 1.5,       // 제목 매치
+  description: 1.2, // 설명 매치
+  content: 1.0,     // 일반 내용 매치
+} as const;
 
 export class BaaSWeightCalculator {
-  private readonly categoryWeights: Record<Category, number>;
   private readonly keywordWeights: Record<string, number>;
 
   constructor(
-    customCategoryWeights?: Partial<Record<Category, number>>,
     customKeywordWeights?: Partial<Record<string, number>>
   ) {
-    this.categoryWeights = { ...CATEGORY_WEIGHTS, ...customCategoryWeights } as Record<Category, number>;
     this.keywordWeights = { ...KEYWORD_WEIGHTS, ...customKeywordWeights } as Record<string, number>;
   }
 
   /**
-   * BM25 결과에 카테고리 및 키워드 가중치를 적용하고 재정렬
+   * BM25 결과에 키워드 가중치를 적용하고 재정렬
    */
   apply(
-    results: BM25Result[], 
-    documents: BaaSDocument[], 
+    results: BM25Result[],
+    documents: BaaSDocument[],
     queryTerms: string[]
   ): WeightedBM25Result[] {
     const documentMap = this.createDocumentMap(documents);
@@ -32,22 +67,19 @@ export class BaaSWeightCalculator {
           console.warn(`Document not found for id: ${result.id}`);
           return {
             ...result,
-            categoryWeight: 1.0,
             keywordWeight: 1.0,
             contextWeight: 1.0,
             finalScore: result.score,
           };
         }
 
-        const categoryWeight = this.getCategoryWeight(document.getCategory());
         const keywordWeight = this.calculateKeywordWeight(document, queryTerms);
         const contextWeight = this.calculateContextWeight(document, queryTerms);
-        
-        const finalScore = result.score * categoryWeight * keywordWeight * contextWeight;
+
+        const finalScore = result.score * keywordWeight * contextWeight;
 
         return {
           ...result,
-          categoryWeight,
           keywordWeight,
           contextWeight,
           finalScore,
@@ -56,12 +88,6 @@ export class BaaSWeightCalculator {
       .sort((a, b) => b.finalScore - a.finalScore);
   }
 
-  /**
-   * 카테고리별 가중치 조회
-   */
-  private getCategoryWeight(category: Category): number {
-    return this.categoryWeights[category] || 1.0;
-  }
 
   /**
    * 키워드 매치 기반 가중치 계산
@@ -108,12 +134,6 @@ export class BaaSWeightCalculator {
     return Math.min(contextWeight, 2.0); // 최대 2배로 제한
   }
 
-  /**
-   * 특정 카테고리의 가중치 업데이트
-   */
-  updateCategoryWeight(category: Category, weight: number): void {
-    this.categoryWeights[category] = weight;
-  }
 
   /**
    * 특정 키워드의 가중치 업데이트
@@ -122,12 +142,6 @@ export class BaaSWeightCalculator {
     this.keywordWeights[keyword.toLowerCase()] = weight;
   }
 
-  /**
-   * 현재 카테고리 가중치 설정 조회
-   */
-  getCategoryWeights(): Readonly<Record<Category, number>> {
-    return this.categoryWeights;
-  }
 
   /**
    * 현재 키워드 가중치 설정 조회
@@ -149,7 +163,6 @@ export class BaaSWeightCalculator {
 }
 
 export interface WeightedBM25Result extends BM25Result {
-  categoryWeight: number;
   keywordWeight: number;
   contextWeight: number;
   finalScore: number;

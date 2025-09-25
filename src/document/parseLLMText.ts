@@ -1,4 +1,4 @@
-import {categories, Category, RawDocs} from "./types.js";
+import {RawDocs} from "./types.js";
 
 export function parseLLMText(text: string): RawDocs[] {
   return text
@@ -23,7 +23,6 @@ function parse(link: { text: string; link: string }): RawDocs {
     title,
     link: url,
     description,
-    category: extractCategory(url),
   };
 }
 
@@ -42,19 +41,3 @@ function extractDescription(text: string): string {
   return text.substring(start).trim();
 }
 
-function extractCategory(link: string): Category {
-  try {
-    const url = new URL(link);
-    
-    for (const category of categories) {
-      if (url.pathname.includes(`/${category}/`)) {
-        return category;
-      }
-    }
-    
-    return "unknown";
-  } catch (error) {
-    console.error(`Failed to parse URL: ${link}`, error);
-    return "unknown";
-  }
-}

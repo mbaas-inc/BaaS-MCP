@@ -1,4 +1,4 @@
-import {Category, DocumentChunk, MarkdownDocument} from "./types.js";
+import {DocumentChunk, MarkdownDocument} from "./types.js";
 import {TokenEstimator} from "./token-estimator.js";
 
 export class BaaSDocument {
@@ -7,18 +7,13 @@ export class BaaSDocument {
   constructor(
     private readonly keywordSet: Set<string>,
     private readonly document: MarkdownDocument,
-    private readonly documentId: number,
-    private readonly category: Category
+    private readonly documentId: number
   ) {
     this.generateChunks();
   }
 
   getId(): number {
     return this.documentId;
-  }
-
-  getCategory(): Category {
-    return this.category;
   }
 
   getTitle(): string {
@@ -65,7 +60,6 @@ export class BaaSDocument {
         wordCount: this.countWords(content),
         estimatedTokens: estimatedTokens,
         headerStack: [this.document.metadata.title],
-        category: this.category
       });
     } else {
       // 토큰 기반으로 문서를 청킹
@@ -82,7 +76,6 @@ export class BaaSDocument {
           wordCount: this.countWords(chunk.text),
           estimatedTokens: this.estimateTokens(chunk.text),
           headerStack: chunk.headerStack,
-          category: this.category
         });
       });
     }
@@ -371,7 +364,6 @@ export class BaaSDocument {
       title: this.getTitle(),
       description: this.getDescription(),
       url: this.getUrl(),
-      category: this.category,
       keywords: Array.from(this.keywordSet)
     };
   }
