@@ -1,4 +1,4 @@
-import { categories, Category, RawDocs } from "./types.js";
+import {categories, Category, RawDocs} from "./types.js";
 
 export function parseLLMText(text: string): RawDocs[] {
   return text

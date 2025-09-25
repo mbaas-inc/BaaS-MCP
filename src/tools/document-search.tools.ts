@@ -1,17 +1,13 @@
-import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { BaaSDocsRepository } from "../repository/baas-docs.repository.js";
-import { Category } from "../document/types.js";
-import { SearchMode } from "../constants/search-mode.js";
-import { 
-  SearchDocumentsParams, 
-  GetDocumentByIdParams 
-} from "../schema/tool-schemas.js";
+import {CallToolResult} from "@modelcontextprotocol/sdk/types.js";
+import {BaaSDocsRepository} from "../repository/baas-docs.repository.js";
+import {SearchMode} from "../constants/search-mode.js";
+import {GetDocumentByIdParams, SearchDocumentsParams} from "../schema/tool-schemas.js";
 
 export function createSearchDocumentsTool(repository: BaaSDocsRepository, projectId?: string | null) {
   return {
     handler: async (params: SearchDocumentsParams): Promise<CallToolResult> => {
       try {
-        const { keywords, query, category, searchMode = SearchMode.BALANCED, limit = 5 } = params;
+        const { keywords, query, searchMode = SearchMode.BALANCED, limit = 5 } = params;
         
         let finalSearchQuery = '';
         let finalKeywords: string[] = [];
@@ -36,7 +32,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
             content: [
               {
                 type: "text",
-                text: `검색 키워드가 필요합니다. 다음과 같이 사용해주세요:\n\n키워드 배열 사용 (권장):\n- keywords: ['로그인', 'React']\n- keywords: ['JWT', '토큰']\n- keywords: ['쿠키', '설정']\n\n문장 사용 (폴백):\n- query: "React 로그인 컴포넌트"\n- query: "JWT 토큰 설정"\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
+                text: `검색 키워드가 필요합니다. 다음과 같이 사용해주세요:\n\n키워드 배열 사용 (권장):\n- keywords: ['로그인', 'React']\n- keywords: ['JWT', '토큰']\n- keywords: ['쿠키', '설정']\n\n문장 사용 (폴백):\n- query: "React 로그인 컴포넌트"\n- query: "JWT 토큰 설정"\n\n사용 가능한 검색 키워드:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
               }
             ]
           };
@@ -45,11 +41,11 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
         // 새로운 고급 검색 기능을 기본으로 사용
         const results = repository.searchDocumentsAdvanced({
           query: finalSearchQuery,
-          category: category as Category,
           limit: Math.min(limit, 10),
           searchMode: searchMode,
           useWeights: true,
           useSynonyms: true,
+          minScore: 0.3, // 절대 최소 점수 임계값 설정
         });
 
         if (results.length === 0) {
@@ -58,7 +54,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
             content: [
               {
                 type: "text",
-                text: `검색어 "${searchTerm}"에 대한 문서를 찾을 수 없습니다. 다른 키워드로 검색해보세요.\n\n사용 가능한 검색 키워드 예시:\n- API 관련: login, signup, authentication, jwt, token\n- 프레임워크: react, vue, nextjs, javascript\n- 보안: security, cors, cookie, validation\n- 에러: error, troubleshooting, debugging`
+                text: `검색어 "${searchTerm}"에 대한 관련 문서를 찾을 수 없습니다.\n\n**AIApp BaaS 인증 시스템 문서는 다음 주제로 제한됩니다:**\n\n📚 **사용 가능한 문서 주제:**\n• **로그인 구현**: React/JavaScript 완전 구현 가이드\n• **회원가입 구현**: React/JavaScript 완전 구현 가이드\n• **로그아웃 구현**: React/JavaScript 완전 구현 가이드\n• **사용자 정보**: React/JavaScript 완전 구현 가이드\n• **에러 처리**: 모든 ServiceException과 클라이언트 처리 패턴\n• **보안**: 쿠키, CORS, XSS 방지 설정\n• **통합 가이드**: 빠른 시작 및 인증 플로우\n\n🔍 **권장 검색 키워드:**\n• 로그인: ['로그인', 'React'], ['login', 'javascript']\n• 회원가입: ['회원가입', 'signup'], ['validation', 'form']\n• JWT 토큰: ['JWT', '토큰'], ['authentication', 'token']\n• 에러 처리: ['에러', 'error'], ['ServiceException', 'validation']\n• 보안 설정: ['쿠키', '보안'], ['cors', 'security']\n\n💡 **Tip**: 구체적인 기능과 구현 방식을 함께 검색하면 더 정확한 결과를 얻을 수 있습니다.`
               }
             ]
           };
@@ -70,7 +66,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
         results.forEach((result, index) => {
           const doc = result.document;
           responseText += `## ${index + 1}. ${doc.getTitle()}\n`;
-          responseText += `**카테고리**: ${doc.getCategory()}\n`;
+          responseText += `**문서 ID**: ${doc.getId()}\n`;
           responseText += `**URL**: ${doc.getUrl()}\n`;
           responseText += `**설명**: ${doc.getDescription()}\n`;
           responseText += `**관련도 점수**: ${result.score.toFixed(2)}\n\n`;
@@ -85,7 +81,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
           responseText += `---\n\n`;
         });
 
-        responseText += `💡 **Tip**: 더 자세한 내용은 \`get-document-by-id\` 도구로 문서 ID를 사용하여 전체 문서를 조회하세요.`;
+        responseText += `💡 **Tip**: 더 자세한 내용은 \`get-document-by-id\` 도구에 위에 표시된 **문서 ID**를 사용하여 전체 문서를 조회하세요.\n예: get-document-by-id를 사용할 때 id 파라미터에 위 검색 결과의 문서 ID 값을 입력하세요.`;
 
         return {
           content: [

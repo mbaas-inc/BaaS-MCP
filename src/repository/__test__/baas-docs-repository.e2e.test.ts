@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeAll } from "vitest";
-import { createBaaSDocsRepository } from "../createBaaSDocsRepository.js";
-import { SearchMode } from "../../constants/search-mode.js";
+import {beforeAll, describe, expect, it} from "vitest";
+import {createBaaSDocsRepository} from "../createBaaSDocsRepository.js";
+import {SearchMode} from "../../constants/search-mode.js";
 
 type Repository = Awaited<ReturnType<typeof createBaaSDocsRepository>>;
 
@@ -11,11 +11,11 @@ describe("BaaSDocsRepository E2E", () => {
     repository = await createBaaSDocsRepository();
   });
 
-  const searchAndExpectResults = (query: string, expectedTerms: string[], category?: string) => {
-    const results = repository.searchDocumentsAdvanced({ query, category });
+  const searchAndExpectResults = (query: string, expectedTerms: string[]) => {
+    const results = repository.searchDocumentsAdvanced({ query });
     expect(results.length).toBeGreaterThan(0);
-    expect(results.some(result => 
-      expectedTerms.some(term => 
+    expect(results.some(result =>
+      expectedTerms.some(term =>
         result.document.getTitle().toLowerCase().includes(term) ||
         result.document.getContent().toLowerCase().includes(term)
       )
@@ -31,26 +31,30 @@ describe("BaaSDocsRepository E2E", () => {
 
   testCases.forEach(({ name, query, terms }) => {
     it(`한국어 인증 키워드로 검색 - ${name}`, () => {
-      searchAndExpectResults(query, terms, "api");
+      searchAndExpectResults(query, terms);
     });
   });
 
   it("복합 키워드 검색 - 원래 문제 상황 재현", () => {
-    const results = searchAndExpectResults("인증 로그인 회원가입 사용자정보", ["인증", "로그인", "회원가입", "사용자"], "api");
+    const results = searchAndExpectResults("인증 로그인 회원가입 사용자정보", ["인증", "로그인", "회원가입", "사용자"]);
     console.log(`복합 키워드 검색 결과: ${results.length}개`);
   });
 
-  it("카테고리별 검색 - API 문서", () => {
-    const results = repository.searchDocumentsAdvanced({ query: "API authentication login", category: "api" });
+  it("통합 문서에서 API와 구현 예제 검색", () => {
+    const results = repository.searchDocumentsAdvanced({ query: "API authentication login" });
     expect(results.length).toBeGreaterThan(0);
-    expect(results.every(result => result.document.getCategory() === "api")).toBe(true);
+    // 통합 문서에는 API 명세와 구현 예제가 모두 포함되어 있음을 검증
+    expect(results.some(result =>
+      result.document.getContent().toLowerCase().includes('api') &&
+      result.document.getContent().toLowerCase().includes('react')
+    )).toBe(true);
   });
 
-  it("템플릿 문서에서 Vue 컴포넌트 검색", () => {
-    const results = repository.searchDocumentsAdvanced({ query: "vue 로그인 컴포넌트", category: "templates" });
+  it("템플릿 문서에서 React 컴포넌트 검색", () => {
+    const results = repository.searchDocumentsAdvanced({ query: "react 로그인 컴포넌트" });
     if (results.length > 0) {
-      expect(results.some(result => 
-        ["vue", "component"].some(term => result.document.getContent().toLowerCase().includes(term))
+      expect(results.some(result =>
+        ["react", "component"].some(term => result.document.getContent().toLowerCase().includes(term))
       )).toBe(true);
     }
   });

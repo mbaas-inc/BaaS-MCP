@@ -1,6 +1,6 @@
-import { MarkdownDocumentFetcher } from "./markdown-document.fetcher.js";
-import { BaaSDocument } from "./baas-document.js";
-import { RawDocs } from "./types.js";
+import {MarkdownDocumentFetcher} from "./markdown-document.fetcher.js";
+import {BaaSDocument} from "./baas-document.js";
+import {RawDocs} from "./types.js";
 
 export class BaaSDocumentLoader {
   private documentId: number = 0;
@@ -82,7 +82,7 @@ export class BaaSDocumentLoader {
       'user', 'token', 'jwt', 'cookie', 'session',
       'api', 'endpoint', 'request', 'response',
       'security', 'validation', 'error',
-      'react', 'vue', 'nextjs', 'javascript', 'typescript'
+      'react', 'nextjs', 'javascript', 'typescript'
     ];
 
     const contentLower = document.content.toLowerCase();

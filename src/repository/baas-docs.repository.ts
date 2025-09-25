@@ -1,9 +1,8 @@
-import { BaaSDocument } from "../document/baas-document.js";
-import { Category } from "../document/types.js";
-import { BaaSBM25Calculator, BM25Result } from "../document/baas-bm25-calculator.js";
-import { BaaSWeightCalculator, WeightedBM25Result } from "../document/baas-weight-calculator.js";
-import { BaaSSynonymDictionary } from "../document/baas-synonym-dictionary.js";
-import { SearchMode } from "../constants/search-mode.js";
+import {BaaSDocument} from "../document/baas-document.js";
+import {BaaSBM25Calculator} from "../document/baas-bm25-calculator.js";
+import {BaaSWeightCalculator, WeightedBM25Result} from "../document/baas-weight-calculator.js";
+import {BaaSSynonymDictionary} from "../document/baas-synonym-dictionary.js";
+import {SearchMode} from "../constants/search-mode.js";
 
 export interface SearchResult {
   document: BaaSDocument;
@@ -17,7 +16,6 @@ export interface SearchResult {
 
 export interface AdvancedSearchOptions {
   query: string;
-  category?: Category;
   keywords?: string[];
   limit?: number;
   minScore?: number;
@@ -81,17 +79,8 @@ export class BaaSDocsRepository {
 
     const searchMode = options.searchMode || SearchMode.BALANCED;
     
-    // 카테고리 필터링을 BM25 계산 이전에 적용
-    let documentsToSearch = this.documents;
-    if (options.category) {
-      documentsToSearch = this.documents.filter(doc => 
-        doc.getCategory() === options.category
-      );
-    }
-    
-    // 카테고리 필터된 문서들만으로 BM25 계산기 생성 및 계산
-    const filteredBM25Calculator = new BaaSBM25Calculator(documentsToSearch);
-    let bm25Results = filteredBM25Calculator.calculate(queryTerms, searchMode);
+    // BM25 계산
+    let bm25Results = this.bm25Calculator.calculate(queryTerms, searchMode);
 
     // 가중치 적용
     let weightedResults: WeightedBM25Result[] = bm25Results.map(result => ({
@@ -151,8 +140,7 @@ export class BaaSDocsRepository {
 
   searchDocuments(
     query: string,
-    limit: number = 5,
-    category?: Category
+    limit: number = 5
   ): SearchResult[] {
     // query validation
     if (!query || typeof query !== 'string') {
@@ -161,12 +149,7 @@ export class BaaSDocsRepository {
     
     const queryTerms = this.preprocessQuery(query);
     
-    let documentsToSearch = this.documents;
-    if (category) {
-      documentsToSearch = documentsToSearch.filter(doc => 
-        doc.getCategory() === category
-      );
-    }
+    const documentsToSearch = this.documents;
 
     const results: SearchResult[] = [];
 
@@ -198,15 +181,6 @@ export class BaaSDocsRepository {
     return this.documents.find(doc => doc.getId() === id);
   }
 
-  getDocumentsByCategory(category: Category): BaaSDocument[] {
-    return this.documents.filter(doc => doc.getCategory() === category);
-  }
-
-  getAllCategories(): Category[] {
-    const categories = new Set<Category>();
-    this.documents.forEach(doc => categories.add(doc.getCategory()));
-    return Array.from(categories);
-  }
 
   getTotalDocuments(): number {
     return this.documents.length;
@@ -234,7 +208,6 @@ export class BaaSDocsRepository {
   // Advanced search with multiple filters (기존 메서드와 호환성 유지)
   advancedSearch(options: {
     query: string;
-    category?: Category;
     keywords?: string[];
     limit?: number;
     minScore?: number;
@@ -242,7 +215,6 @@ export class BaaSDocsRepository {
     // 새로운 고급 검색 메서드로 위임
     return this.searchDocumentsAdvanced({
       query: options.query,
-      category: options.category,
       keywords: options.keywords,
       limit: options.limit || 10,
       minScore: options.minScore,

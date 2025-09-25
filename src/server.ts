@@ -1,16 +1,10 @@
 #!/usr/bin/env node
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createBaaSDocsRepository } from "./repository/createBaaSDocsRepository.js";
-import { 
-  createSearchDocumentsTool,
-  createGetDocumentByIdTool
-} from "./tools/document-search.tools.js";
-import {
-  SearchDocumentsSchema,
-  GetDocumentByIdSchema
-} from "./schema/tool-schemas.js";
+import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
+import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
+import {createBaaSDocsRepository} from "./repository/createBaaSDocsRepository.js";
+import {createGetDocumentByIdTool, createSearchDocumentsTool} from "./tools/document-search.tools.js";
+import {GetDocumentByIdSchema, SearchDocumentsSchema} from "./schema/tool-schemas.js";
 
 // Project ID 파싱
 function parseProjectId(): string | null {
@@ -56,23 +50,21 @@ async function main() {
   // Register tools
   server.tool(
     "search-documents",
-    `AIApp BaaS 인증 시스템 문서를 키워드 배열로 검색합니다. API 문서, 구현 가이드, 보안 가이드, 예제 코드 등 모든 문서를 통합 검색합니다.
+    `BaaS 인증 시스템의 통합 구현 가이드를 키워드로 검색합니다. API 명세와 React/JavaScript 구현 예제가 하나의 문서에 통합되어 있어 한 번의 검색으로 완전한 구현 가이드를 제공합니다.
 
-사용 예시:
-- 로그인 React 컴포넌트: keywords=['로그인', 'React']
-- JWT 토큰 설정: keywords=['JWT', '토큰']
-- HTML 회원가입 폼: keywords=['회원가입', 'HTML']
-- 보안 가이드: keywords=['보안'], category='security'
-- API 문서: keywords=['API'], category='api'
+🎯 **통합 구현 가이드**:
+- 로그인 구현: keywords=['로그인', 'React'] - API + React + JavaScript 완전 구현
+- 회원가입 구현: keywords=['회원가입', 'signup'] - API + 클라이언트 + 유효성 검사
+- 사용자 정보: keywords=['사용자', '정보'] - API + 상태 관리 + 에러 처리
+- 로그아웃 구현: keywords=['로그아웃', 'logout'] - API + 세션 정리 + 보안
 
-키워드 배열 사용 (권장):
-- keywords: ['로그인', 'React'], ['JWT', '토큰'], ['쿠키', '설정']
+🛡️ **보안 & 에러 처리**:
+- 에러 처리: keywords=['에러', 'error'] - ServiceException + 클라이언트 패턴
+- 보안 설정: keywords=['보안', 'cookie'] - 쿠키 + CORS + XSS 방지
 
-카테고리 필터링:
-- category: api, templates, security, examples, dev, frameworks, errors, config
-
-문장 사용 (폴백):
-- query: "React 로그인 컴포넌트"`,
+💡 **사용법**:
+- 키워드 배열: keywords=['JWT', '토큰'], keywords=['validation', 'form']
+- 문장 검색: query="React 로그인 구현"`,
     SearchDocumentsSchema,
     searchDocumentsTool.handler
   );

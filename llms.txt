@@ -1,28 +1,18 @@
 # AIApp BaaS 인증 시스템 문서
 
-## API 규격서
-[회원가입 API](https://docs.aiapp.link/api/auth/signup.md): POST /account/signup - 새로운 계정 생성, 프로젝트별 사용자 관리 (project_id 필수), 커스텀 데이터 필드 지원
-[로그인 API](https://docs.aiapp.link/api/auth/login.md): POST /account/login - JWT 토큰 발급 및 서브도메인 쿠키 자동 설정 (project_id 필수)
-[사용자 정보 API](https://docs.aiapp.link/api/auth/info.md): GET /account/info - Bearer 토큰 인증으로 현재 사용자 정보 조회
-[로그아웃 API](https://docs.aiapp.link/api/auth/logout.md): POST /account/logout - JWT 토큰 무효화 및 쿠키 삭제
-[에러 코드](https://docs.aiapp.link/api/error-codes.md): API 에러 코드 및 해결 방법
+## 통합 인증 구현 가이드 (API + 클라이언트 코드)
+[로그인 구현 가이드](https://docs.aiapp.link/auth-operations/login.md): POST /account/login API 명세 + React/JavaScript 완전 구현 예제, JWT 토큰 및 쿠키 자동 설정
+[회원가입 구현 가이드](https://docs.aiapp.link/auth-operations/signup.md): POST /account/signup API 명세 + React/JavaScript 완전 구현 예제, 유효성 검사 및 에러 처리
+[로그아웃 구현 가이드](https://docs.aiapp.link/auth-operations/logout.md): POST /account/logout API 명세 + React/JavaScript 완전 구현 예제, 토큰 무효화 및 세션 정리
+[사용자 정보 구현 가이드](https://docs.aiapp.link/auth-operations/user-info.md): GET /account/info API 명세 + React/JavaScript 완전 구현 예제, 인증 상태 관리
 
-## React 템플릿
-[React 인증 컴포넌트](https://docs.aiapp.link/templates/react/auth-components.md): React + TypeScript 로그인/회원가입 폼, useAuth 훅, 컨텍스트 API
-
-## Vue 템플릿
-[Vue 3 인증 컴포저블](https://docs.aiapp.link/templates/vue/auth-composable.md): Vue 3 Composition API 인증 컴포저블과 상태 관리
-[Vue 3 로그인 컴포넌트](https://docs.aiapp.link/templates/vue/login-component.md): Vue 3 로그인 폼 컴포넌트 구현
-
-## 순수 JavaScript 템플릿
-[HTML/JS 로그인 폼](https://docs.aiapp.link/templates/vanilla/login-form.md): 순수 HTML과 JavaScript로 구현한 로그인 폼, ES6 모듈 버전 포함
-[HTML/JS 회원가입 폼](https://docs.aiapp.link/templates/vanilla/signup-form.md): 순수 HTML과 JavaScript로 구현한 회원가입 폼, 유효성 검사 포함
-[JavaScript 인증 관리자](https://docs.aiapp.link/templates/vanilla/auth-manager.md): 순수 JavaScript 인증 상태 관리 시스템, 세션 관리 및 보안 기능
-[jQuery 연동 예제](https://docs.aiapp.link/templates/vanilla/jquery-example.md): jQuery와 Bootstrap을 사용한 인증 시스템 구현
+## 공통 가이드
+[에러 처리 가이드](https://docs.aiapp.link/common/errors.md): 모든 ServiceException 에러 코드와 React/JavaScript 에러 처리 패턴, 디버깅 도구
+[보안 가이드](https://docs.aiapp.link/common/security.md): HttpOnly 쿠키, CORS, XSS 방지, CSRF 보안 설정 및 모범 사례
 
 ## 통합 가이드
 [빠른 시작 가이드](https://docs.aiapp.link/integration/quickstart.md): 5분 안에 인증 시스템 클라이언트 코드 생성 및 연동
 [인증 플로우 가이드](https://docs.aiapp.link/integration/authentication-flow.md): 클라이언트 관점의 인증 플로우 상세 설명
 
-## 보안 가이드
+## 보안 설정
 [쿠키 설정 가이드](https://docs.aiapp.link/security/cookies.md): HttpOnly, Secure, SameSite 속성 설정 및 서브도메인 쿠키 공유

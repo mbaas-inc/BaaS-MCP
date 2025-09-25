@@ -1,7 +1,7 @@
-import { Category } from "./types.js";
-import { BM25Result } from "./baas-bm25-calculator.js";
-import { BaaSDocument } from "./baas-document.js";
-import { CATEGORY_WEIGHTS, KEYWORD_WEIGHTS, CONTEXT_WEIGHTS } from "../constants/category-weights.js";
+import {Category} from "./types.js";
+import {BM25Result} from "./baas-bm25-calculator.js";
+import {BaaSDocument} from "./baas-document.js";
+import {CATEGORY_WEIGHTS, CONTEXT_WEIGHTS, KEYWORD_WEIGHTS} from "../constants/category-weights.js";
 
 export class BaaSWeightCalculator {
   private readonly categoryWeights: Record<Category, number>;

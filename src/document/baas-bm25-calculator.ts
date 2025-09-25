@@ -1,11 +1,6 @@
-import {
-  BM25_CONFIGS,
-  BM25Config,
-  MIN_SCORE_RATIO,
-  SearchMode,
-} from "../constants/search-mode.js";
-import { BaaSDocument } from "./baas-document.js";
-import { DocumentChunk } from "./types.js";
+import {BM25_CONFIGS, BM25Config, MIN_SCORE_RATIO, SearchMode,} from "../constants/search-mode.js";
+import {BaaSDocument} from "./baas-document.js";
+import {DocumentChunk} from "./types.js";
 
 type Score = { id: number; chunkId: number; score: number; totalTF: number };
 

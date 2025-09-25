@@ -23,7 +23,6 @@ export class BaaSSynonymDictionary {
     
     // 프레임워크 및 기술 스택
     "react": ["React", "리액트", "jsx", "tsx", "컴포넌트", "component"],
-    "vue": ["Vue", "뷰", "vuejs", "vue.js"],
     "nextjs": ["Next.js", "next", "넥스트", "서버사이드"],
     "vanilla": ["바닐라", "javascript", "js", "html", "순수 자바스크립트"],
     "typescript": ["ts", "타입스크립트", "type"],

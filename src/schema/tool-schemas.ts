@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { SearchMode } from "../constants/search-mode.js";
+import {z} from "zod";
+import {SearchMode} from "../constants/search-mode.js";
 
 /**
  * 문서 검색 도구 스키마
@@ -12,10 +12,6 @@ export const SearchDocumentsSchema = {
     .string()
     .optional()
     .describe("키워드 배열 대신 사용할 검색 문장 (비권장). 예: 'React 로그인 컴포넌트'"),
-  category: z
-    .enum(["api", "templates", "security", "examples", "dev", "frameworks", "errors", "config"])
-    .optional()
-    .describe("검색할 문서 카테고리 (선택사항). api, templates, security, examples, dev, frameworks, errors, config 중 선택"),
   searchMode: z
     .nativeEnum(SearchMode)
     .default(SearchMode.BALANCED)
@@ -52,11 +48,9 @@ export const GetDocumentByIdSchema = {
 };
 
 
-// 타입 정의 (Toss MCP 방식)
 export type SearchDocumentsParams = {
   keywords: string[];
   query?: string;
-  category?: "api" | "templates" | "security" | "examples" | "dev" | "frameworks" | "errors" | "config";
   searchMode?: SearchMode;
   limit?: number;
 };

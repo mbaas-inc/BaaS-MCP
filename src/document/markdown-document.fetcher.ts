@@ -1,4 +1,4 @@
-import { MarkdownDocument, DocumentMetadata, Category, categories } from "./types.js";
+import {categories, Category, DocumentMetadata, MarkdownDocument} from "./types.js";
 
 export class MarkdownDocumentFetcher {
   async fetch(url: string): Promise<MarkdownDocument> {
@@ -110,7 +110,7 @@ export class MarkdownDocumentFetcher {
     // Add common technical terms
     const technicalTerms = [
       'api', 'jwt', 'token', 'cookie', 'auth', 'login', 'signup',
-      'react', 'vue', 'nextjs', 'javascript', 'typescript', 'cors',
+      'react', 'nextjs', 'javascript', 'typescript', 'cors',
       'http', 'https', 'json', 'fetch', 'axios', 'express',
       'security', 'encryption', 'validation', 'error', 'response'
     ];

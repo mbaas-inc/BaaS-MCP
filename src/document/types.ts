@@ -31,24 +31,16 @@ export interface DocumentChunk {
   category: Category;
 }
 
-export type Category = 
+export type Category =
   | "api"
-  | "templates" 
+  | "templates"
   | "security"
-  | "examples"
-  | "dev"
-  | "frameworks"
-  | "errors"
-  | "config"
+  | "integration"
   | "unknown";
 
 export const categories: Category[] = [
   "api",
   "templates",
-  "security", 
-  "examples",
-  "dev",
-  "frameworks",
-  "errors",
-  "config"
+  "security",
+  "integration"
 ];

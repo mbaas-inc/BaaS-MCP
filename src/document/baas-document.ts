@@ -1,5 +1,5 @@
-import { MarkdownDocument, Category, DocumentChunk } from "./types.js";
-import { TokenEstimator } from "./token-estimator.js";
+import {Category, DocumentChunk, MarkdownDocument} from "./types.js";
+import {TokenEstimator} from "./token-estimator.js";
 
 export class BaaSDocument {
   private chunks: DocumentChunk[] = [];

@@ -1,7 +1,7 @@
-import { MarkdownDocumentFetcher } from "../document/markdown-document.fetcher.js";
-import { parseLLMText } from "../document/parseLLMText.js";
-import { BaaSDocumentLoader } from "../document/baas-document.loader.js";
-import { BaaSDocsRepository } from "./baas-docs.repository.js";
+import {MarkdownDocumentFetcher} from "../document/markdown-document.fetcher.js";
+import {parseLLMText} from "../document/parseLLMText.js";
+import {BaaSDocumentLoader} from "../document/baas-document.loader.js";
+import {BaaSDocsRepository} from "./baas-docs.repository.js";
 
 export async function createBaaSDocsRepository(
   link = "https://docs.aiapp.link/llms.txt"

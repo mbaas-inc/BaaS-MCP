@@ -25,7 +25,7 @@ export const BM25_CONFIGS: Record<SearchMode, BM25Config> = {
 };
 
 export const MIN_SCORE_RATIO = {
-  broad: 0.1,
-  balanced: 0.5,
-  precise: 1.0,
+  broad: 0.3,    // 최고점의 21%로 매핑 (0.3 * 0.7 = 0.21)
+  balanced: 0.7, // 최고점의 49%로 매핑 (0.7 * 0.7 = 0.49)
+  precise: 1.0,  // 최고점의 70%로 매핑 (1.0 * 0.7 = 0.70)
 };
