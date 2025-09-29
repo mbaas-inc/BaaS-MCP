@@ -1,6 +1,9 @@
 # 회원가입 구현 가이드
 
-AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 통합 가이드입니다. API 명세부터 React와 Vanilla JavaScript 구현 예제까지 모든 내용을 포함합니다.
+AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 핵심 가이드입니다.
+
+**Keywords**: signup, 회원가입, register, validation, user creation, form, 사용자등록
+**Focus**: 회원가입 API 구현, 유효성 검사, React/JavaScript 예제
 
 ## 1. API 명세
 
@@ -41,21 +44,6 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 통합
 
 ### 요청 예시
 
-#### 기본 회원가입
-
-```json
-{
-  "user_id": "johndoe",
-  "user_pw": "password123",
-  "name": "John Doe",
-  "phone": "010-1234-5678",
-  "is_reserved": false,
-  "project_id": "[PROJECT_ID]"
-}
-```
-
-#### 커스텀 데이터 포함 회원가입
-
 ```json
 {
   "user_id": "johndoe",
@@ -66,8 +54,7 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 통합
   "project_id": "[PROJECT_ID]",
   "data": {
     "age": 25,
-    "department": "Engineering",
-    "interests": ["coding", "ai"]
+    "department": "Engineering"
   }
 }
 ```
@@ -98,11 +85,12 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 통합
 ```json
 {
   "success": false,
-  "message": "입력값이 올바르지 않습니다.",
+  "errorCode": "VALIDATION_ERROR",
+  "message": "요청 값이 올바르지 않습니다.",
   "detail": [
     {
       "field": "user_id",
-      "message": "사용자 ID는 4-20자의 영문과 숫자만 가능합니다."
+      "message": "이미 사용 중인 사용자 ID입니다"
     }
   ]
 }
@@ -113,214 +101,142 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 통합
 {
   "success": false,
   "errorCode": "USER_EXISTS",
-  "message": "이미 사용 중인 사용자 ID입니다."
+  "message": "이미 존재하는 사용자입니다"
 }
 ```
 
 ## 2. React 구현
 
-### 기본 회원가입 컴포넌트
+### 핵심 회원가입 구현
 
 ```tsx
 import React, { useState } from 'react';
-import axios from 'axios';
 
-interface SignupFormProps {
-  onSuccess?: (user: any) => void;
-  onError?: (error: any) => void;
-  className?: string;
-  projectId: string;
-}
-
-export const SignupForm: React.FC<SignupFormProps> = ({
-  onSuccess,
-  onError,
-  className = '',
-  projectId
-}) => {
-  const [form, setForm] = useState({
+const SignupForm = ({ onSuccess, projectId }) => {
+  const [formData, setFormData] = useState({
     user_id: '',
     user_pw: '',
     name: '',
     phone: '',
     is_reserved: false
   });
-
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState({});
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors = {};
 
-    // 사용자 ID 검증
-    if (!form.user_id) {
-      newErrors.user_id = '사용자 ID를 입력해주세요.';
-    } else if (!/^[a-zA-Z0-9]{4,20}$/.test(form.user_id)) {
-      newErrors.user_id = '사용자 ID는 4-20자의 영문과 숫자만 가능합니다.';
+    if (!formData.user_id || formData.user_id.length < 4) {
+      newErrors.user_id = '사용자 ID는 4자 이상이어야 합니다';
     }
-
-    // 비밀번호 검증
-    if (!form.user_pw) {
-      newErrors.user_pw = '비밀번호를 입력해주세요.';
-    } else if (form.user_pw.length < 8) {
-      newErrors.user_pw = '비밀번호는 8자 이상이어야 합니다.';
+    if (!formData.user_pw || formData.user_pw.length < 8) {
+      newErrors.user_pw = '비밀번호는 8자 이상이어야 합니다';
     }
-
-    // 이름 검증
-    if (!form.name) {
-      newErrors.name = '이름을 입력해주세요.';
+    if (!formData.name.trim()) {
+      newErrors.name = '이름을 입력해주세요';
     }
-
-    // 전화번호 검증
-    if (!form.phone) {
-      newErrors.phone = '전화번호를 입력해주세요.';
-    } else if (!/^010-\d{4}-\d{4}$/.test(form.phone)) {
-      newErrors.phone = '전화번호는 010-1234-5678 형식으로 입력해주세요.';
+    if (!formData.phone || !/^010-\d{4}-\d{4}$/.test(formData.phone)) {
+      newErrors.phone = '올바른 전화번호 형식이 아닙니다 (010-1234-5678)';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
     setLoading(true);
-
     try {
-      const signupData = {
-        ...form,
-        project_id: projectId
-      };
-
-      const response = await axios.post('https://api.aiapp.link/account/signup', signupData, {
-        withCredentials: true
+      const response = await fetch('https://api.aiapp.link/account/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ...formData, project_id: projectId })
       });
 
-      if (response.data.success) {
-        onSuccess?.(response.data.data);
-      }
-    } catch (err: any) {
-      const apiError = err.response?.data;
-      let errorMessage = '회원가입에 실패했습니다.';
+      const result = await response.json();
 
-      if (apiError?.errorCode) {
-        switch (apiError.errorCode) {
-          case 'USER_EXISTS':
-            setErrors({ user_id: '이미 사용 중인 사용자 ID입니다.' });
-            return;
-          case 'VALIDATION_ERROR':
-            // 서버 유효성 검사 오류 처리
-            if (apiError.detail) {
-              const fieldErrors: Record<string, string> = {};
-              apiError.detail.forEach((error: any) => {
-                fieldErrors[error.field] = error.message;
-              });
-              setErrors(fieldErrors);
-              return;
-            }
-            break;
+      if (result.success) {
+        onSuccess?.(result.data);
+      } else {
+        // 서버 에러를 필드별로 매핑
+        if (result.detail) {
+          const serverErrors = {};
+          result.detail.forEach(error => {
+            serverErrors[error.field] = error.message;
+          });
+          setErrors(serverErrors);
+        } else {
+          setErrors({ general: result.message || '회원가입에 실패했습니다' });
         }
-        errorMessage = apiError.message || '회원가입에 실패했습니다.';
       }
-
-      onError?.(err);
+    } catch (err) {
+      setErrors({ general: '네트워크 오류가 발생했습니다' });
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className={`signup-form ${className}`}>
-      <h2>회원가입</h2>
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // 필드 수정 시 해당 에러 제거
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
 
-      <div className="form-group">
-        <label htmlFor="user_id">
-          사용자 ID <span className="required">*</span>
-        </label>
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
         <input
           type="text"
-          id="user_id"
-          value={form.user_id}
-          onChange={(e) => setForm({...form, user_id: e.target.value})}
-          placeholder="영문과 숫자 4-20자"
+          placeholder="사용자 ID (4-20자)"
+          value={formData.user_id}
+          onChange={(e) => handleChange('user_id', e.target.value)}
           required
-          disabled={loading}
-          className={errors.user_id ? 'error' : ''}
         />
-        {errors.user_id && <div className="field-error">{errors.user_id}</div>}
+        {errors.user_id && <span className="error">{errors.user_id}</span>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="user_pw">
-          비밀번호 <span className="required">*</span>
-        </label>
+      <div>
         <input
           type="password"
-          id="user_pw"
-          value={form.user_pw}
-          onChange={(e) => setForm({...form, user_pw: e.target.value})}
-          placeholder="8자 이상"
+          placeholder="비밀번호 (8자 이상)"
+          value={formData.user_pw}
+          onChange={(e) => handleChange('user_pw', e.target.value)}
           required
-          disabled={loading}
-          className={errors.user_pw ? 'error' : ''}
         />
-        {errors.user_pw && <div className="field-error">{errors.user_pw}</div>}
+        {errors.user_pw && <span className="error">{errors.user_pw}</span>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="name">
-          이름 <span className="required">*</span>
-        </label>
+      <div>
         <input
           type="text"
-          id="name"
-          value={form.name}
-          onChange={(e) => setForm({...form, name: e.target.value})}
-          placeholder="실명을 입력하세요"
+          placeholder="이름"
+          value={formData.name}
+          onChange={(e) => handleChange('name', e.target.value)}
           required
-          disabled={loading}
-          className={errors.name ? 'error' : ''}
         />
-        {errors.name && <div className="field-error">{errors.name}</div>}
+        {errors.name && <span className="error">{errors.name}</span>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="phone">
-          전화번호 <span className="required">*</span>
-        </label>
+      <div>
         <input
           type="tel"
-          id="phone"
-          value={form.phone}
-          onChange={(e) => setForm({...form, phone: e.target.value})}
-          placeholder="010-1234-5678"
+          placeholder="전화번호 (010-1234-5678)"
+          value={formData.phone}
+          onChange={(e) => handleChange('phone', e.target.value)}
           required
-          disabled={loading}
-          className={errors.phone ? 'error' : ''}
         />
-        {errors.phone && <div className="field-error">{errors.phone}</div>}
+        {errors.phone && <span className="error">{errors.phone}</span>}
       </div>
 
-      <div className="form-group">
-        <label className="checkbox-group">
-          <input
-            type="checkbox"
-            checked={form.is_reserved}
-            onChange={(e) => setForm({...form, is_reserved: e.target.checked})}
-            disabled={loading}
-          />
-          예약 계정으로 등록
-        </label>
-      </div>
+      {errors.general && <div className="error">{errors.general}</div>}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="submit-button"
-      >
+      <button type="submit" disabled={loading}>
         {loading ? '가입 중...' : '회원가입'}
       </button>
     </form>
@@ -328,572 +244,148 @@ export const SignupForm: React.FC<SignupFormProps> = ({
 };
 ```
 
-### Tailwind CSS 스타일링 버전
-
-```tsx
-export const SignupFormTailwind: React.FC<SignupFormProps> = ({
-  onSuccess,
-  onError,
-  projectId
-}) => {
-  // ... 상태 관리 및 로직 동일
-
-  return (
-    <div className="max-w-md mx-auto p-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <h2 className="text-2xl font-bold text-center mb-6">회원가입</h2>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            사용자 ID <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={form.user_id}
-            onChange={(e) => setForm({...form, user_id: e.target.value})}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.user_id ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="영문과 숫자 4-20자"
-            required
-          />
-          {errors.user_id && (
-            <p className="mt-1 text-sm text-red-600">{errors.user_id}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            비밀번호 <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="password"
-            value={form.user_pw}
-            onChange={(e) => setForm({...form, user_pw: e.target.value})}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.user_pw ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="8자 이상"
-            required
-          />
-          {errors.user_pw && (
-            <p className="mt-1 text-sm text-red-600">{errors.user_pw}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            이름 <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => setForm({...form, name: e.target.value})}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.name ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="실명을 입력하세요"
-            required
-          />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            전화번호 <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="tel"
-            value={form.phone}
-            onChange={(e) => setForm({...form, phone: e.target.value})}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.phone ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="010-1234-5678"
-            required
-          />
-          {errors.phone && (
-            <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-          )}
-        </div>
-
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="is_reserved"
-            checked={form.is_reserved}
-            onChange={(e) => setForm({...form, is_reserved: e.target.checked})}
-            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-          />
-          <label htmlFor="is_reserved" className="ml-2 block text-sm text-gray-900">
-            예약 계정으로 등록
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-green-500 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        >
-          {loading ? '가입 중...' : '회원가입'}
-        </button>
-      </form>
-    </div>
-  );
-};
-```
-
 ## 3. Vanilla JavaScript 구현
 
-### HTML 구조
+### 핵심 회원가입 기능
 
-```html
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입</title>
-    <style>
-        .signup-container {
-            max-width: 500px;
-            margin: 30px auto;
-            padding: 25px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-family: Arial, sans-serif;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
+```javascript
+class SignupManager {
+  constructor(projectId) {
+    this.projectId = projectId;
+    this.loading = false;
+  }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+  validateForm(formData) {
+    const errors = {};
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #333;
-        }
+    if (!formData.user_id || formData.user_id.length < 4) {
+      errors.user_id = '사용자 ID는 4자 이상이어야 합니다';
+    }
+    if (!formData.user_pw || formData.user_pw.length < 8) {
+      errors.user_pw = '비밀번호는 8자 이상이어야 합니다';
+    }
+    if (!formData.name || !formData.name.trim()) {
+      errors.name = '이름을 입력해주세요';
+    }
+    if (!formData.phone || !/^010-\d{4}-\d{4}$/.test(formData.phone)) {
+      errors.phone = '올바른 전화번호 형식이 아닙니다 (010-1234-5678)';
+    }
 
-        .form-group label .required {
-            color: #dc3545;
-        }
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors
+    };
+  }
 
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-        }
+  async signup(formData) {
+    if (this.loading) return;
 
-        .form-group input:focus {
-            outline: none;
-            border-color: #28a745;
-            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
-        }
+    const validation = this.validateForm(formData);
+    if (!validation.isValid) {
+      this.onValidationError(validation.errors);
+      return;
+    }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    this.loading = true;
+    try {
+      const response = await fetch('https://api.aiapp.link/account/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...formData,
+          project_id: this.projectId
+        })
+      });
 
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
+      const result = await response.json();
 
-        .submit-button {
-            width: 100%;
-            padding: 14px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+      if (result.success) {
+        this.onSignupSuccess(result.data);
+        return result.data;
+      } else {
+        throw new Error(result.message || '회원가입 실패');
+      }
+    } catch (error) {
+      this.onSignupError(error);
+      throw error;
+    } finally {
+      this.loading = false;
+    }
+  }
 
-        .submit-button:hover:not(:disabled) {
-            background-color: #218838;
-        }
+  onSignupSuccess(data) {
+    console.log('회원가입 성공:', data);
+    alert('회원가입이 완료되었습니다!');
+    window.location.href = '/login';
+  }
 
-        .submit-button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
+  onSignupError(error) {
+    console.error('회원가입 실패:', error);
+    alert(error.message);
+  }
 
-        .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border: 1px solid #f5c6cb;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
+  onValidationError(errors) {
+    console.log('유효성 검사 실패:', errors);
+    // 에러 메시지 표시
+    Object.keys(errors).forEach(field => {
+      const errorElement = document.getElementById(`${field}_error`);
+      if (errorElement) {
+        errorElement.textContent = errors[field];
+        errorElement.style.display = 'block';
+      }
+    });
+  }
+}
 
-        .success-message {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 12px;
-            border: 1px solid #c3e6cb;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
+// 사용 예시
+const signupManager = new SignupManager('[PROJECT_ID]');
 
-        .field-error {
-            color: #dc3545;
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
-        }
+document.getElementById('signupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-        .field-error.show {
-            display: block;
-        }
+  const formData = new FormData(e.target);
+  const signupData = {
+    user_id: formData.get('user_id'),
+    user_pw: formData.get('user_pw'),
+    name: formData.get('name'),
+    phone: formData.get('phone'),
+    is_reserved: formData.get('is_reserved') === 'on'
+  };
 
-        .input-error {
-            border-color: #dc3545 !important;
-        }
-
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-    </style>
-</head>
-<body>
-    <div class="signup-container">
-        <form id="signupForm">
-            <h2>회원가입</h2>
-
-            <div id="messageContainer"></div>
-
-            <div class="form-group">
-                <label for="user_id">사용자 ID <span class="required">*</span></label>
-                <input
-                    type="text"
-                    id="user_id"
-                    name="user_id"
-                    placeholder="영문과 숫자 4-20자"
-                    required
-                >
-                <div id="user_id_error" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="user_pw">비밀번호 <span class="required">*</span></label>
-                <input
-                    type="password"
-                    id="user_pw"
-                    name="user_pw"
-                    placeholder="8자 이상"
-                    required
-                >
-                <div id="user_pw_error" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="name">이름 <span class="required">*</span></label>
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    placeholder="실명을 입력하세요"
-                    required
-                >
-                <div id="name_error" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="phone">전화번호 <span class="required">*</span></label>
-                <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    placeholder="010-1234-5678"
-                    required
-                >
-                <div id="phone_error" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <div class="checkbox-group">
-                    <input
-                        type="checkbox"
-                        id="is_reserved"
-                        name="is_reserved"
-                        value="true"
-                    >
-                    <label for="is_reserved">예약 계정으로 등록</label>
-                </div>
-            </div>
-
-            <button type="submit" id="submitButton" class="submit-button">
-                회원가입
-            </button>
-        </form>
-    </div>
-
-    <script>
-        // 설정
-        const CONFIG = {
-            API_ENDPOINT: 'https://api.aiapp.link',
-            PROJECT_ID: '[PROJECT_ID]'
-        };
-
-        class SignupManager {
-            constructor() {
-                this.form = document.getElementById('signupForm');
-                this.submitButton = document.getElementById('submitButton');
-                this.messageContainer = document.getElementById('messageContainer');
-                this.loading = false;
-
-                this.init();
-            }
-
-            init() {
-                // 폼 제출 이벤트
-                this.form.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.handleSubmit();
-                });
-
-                // 실시간 유효성 검사
-                this.setupValidation();
-            }
-
-            setupValidation() {
-                // 사용자 ID 유효성 검사
-                document.getElementById('user_id').addEventListener('blur', (e) => {
-                    this.validateUserId(e.target.value);
-                });
-
-                // 비밀번호 유효성 검사
-                document.getElementById('user_pw').addEventListener('blur', (e) => {
-                    this.validatePassword(e.target.value);
-                });
-
-                // 전화번호 유효성 검사
-                document.getElementById('phone').addEventListener('blur', (e) => {
-                    this.validatePhone(e.target.value);
-                });
-            }
-
-            validateUserId(value) {
-                const errorElement = document.getElementById('user_id_error');
-                const inputElement = document.getElementById('user_id');
-
-                if (!value) {
-                    this.showFieldError('user_id', '사용자 ID를 입력해주세요.');
-                    return false;
-                } else if (!/^[a-zA-Z0-9]{4,20}$/.test(value)) {
-                    this.showFieldError('user_id', '사용자 ID는 4-20자의 영문과 숫자만 가능합니다.');
-                    return false;
-                } else {
-                    this.hideFieldError('user_id');
-                    return true;
-                }
-            }
-
-            validatePassword(value) {
-                if (!value) {
-                    this.showFieldError('user_pw', '비밀번호를 입력해주세요.');
-                    return false;
-                } else if (value.length < 8) {
-                    this.showFieldError('user_pw', '비밀번호는 8자 이상이어야 합니다.');
-                    return false;
-                } else {
-                    this.hideFieldError('user_pw');
-                    return true;
-                }
-            }
-
-            validatePhone(value) {
-                if (!value) {
-                    this.showFieldError('phone', '전화번호를 입력해주세요.');
-                    return false;
-                } else if (!/^010-\d{4}-\d{4}$/.test(value)) {
-                    this.showFieldError('phone', '전화번호는 010-1234-5678 형식으로 입력해주세요.');
-                    return false;
-                } else {
-                    this.hideFieldError('phone');
-                    return true;
-                }
-            }
-
-            async handleSubmit() {
-                if (this.loading) return;
-
-                // 전체 유효성 검사
-                if (!this.validateForm()) return;
-
-                this.setLoading(true);
-                this.clearMessages();
-
-                try {
-                    const formData = new FormData(this.form);
-                    const signupData = {
-                        user_id: formData.get('user_id'),
-                        user_pw: formData.get('user_pw'),
-                        name: formData.get('name'),
-                        phone: formData.get('phone'),
-                        is_reserved: formData.get('is_reserved') === 'true',
-                        project_id: CONFIG.PROJECT_ID
-                    };
-
-                    const response = await fetch(`${CONFIG.API_ENDPOINT}/account/signup`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(signupData),
-                        credentials: 'include'
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok && result.success) {
-                        this.showMessage('회원가입이 완료되었습니다!', 'success');
-                        this.form.reset();
-
-                        // 회원가입 성공 후 처리
-                        setTimeout(() => {
-                            window.location.href = '/login';
-                        }, 2000);
-                    } else {
-                        this.handleError(result);
-                    }
-                } catch (error) {
-                    console.error('회원가입 실패:', error);
-                    this.showMessage('네트워크 오류가 발생했습니다.', 'error');
-                } finally {
-                    this.setLoading(false);
-                }
-            }
-
-            validateForm() {
-                const userId = document.getElementById('user_id').value;
-                const password = document.getElementById('user_pw').value;
-                const name = document.getElementById('name').value;
-                const phone = document.getElementById('phone').value;
-
-                let isValid = true;
-
-                if (!this.validateUserId(userId)) isValid = false;
-                if (!this.validatePassword(password)) isValid = false;
-                if (!name) {
-                    this.showFieldError('name', '이름을 입력해주세요.');
-                    isValid = false;
-                }
-                if (!this.validatePhone(phone)) isValid = false;
-
-                return isValid;
-            }
-
-            handleError(errorData) {
-                if (errorData.errorCode === 'USER_EXISTS') {
-                    this.showFieldError('user_id', '이미 사용 중인 사용자 ID입니다.');
-                } else if (errorData.errorCode === 'VALIDATION_ERROR' && errorData.detail) {
-                    errorData.detail.forEach(error => {
-                        this.showFieldError(error.field, error.message);
-                    });
-                } else {
-                    this.showMessage(errorData.message || '회원가입에 실패했습니다.', 'error');
-                }
-            }
-
-            showFieldError(fieldName, message) {
-                const errorElement = document.getElementById(`${fieldName}_error`);
-                const inputElement = document.getElementById(fieldName);
-
-                if (errorElement && inputElement) {
-                    errorElement.textContent = message;
-                    errorElement.classList.add('show');
-                    inputElement.classList.add('input-error');
-                }
-            }
-
-            hideFieldError(fieldName) {
-                const errorElement = document.getElementById(`${fieldName}_error`);
-                const inputElement = document.getElementById(fieldName);
-
-                if (errorElement && inputElement) {
-                    errorElement.classList.remove('show');
-                    inputElement.classList.remove('input-error');
-                }
-            }
-
-            setLoading(isLoading) {
-                this.loading = isLoading;
-                this.submitButton.disabled = isLoading;
-                this.submitButton.textContent = isLoading ? '가입 중...' : '회원가입';
-
-                const inputs = this.form.querySelectorAll('input');
-                inputs.forEach(input => {
-                    input.disabled = isLoading;
-                });
-            }
-
-            showMessage(message, type) {
-                const messageClass = type === 'error' ? 'error-message' : 'success-message';
-                this.messageContainer.innerHTML = `<div class="${messageClass}">${message}</div>`;
-            }
-
-            clearMessages() {
-                this.messageContainer.innerHTML = '';
-                // 모든 필드 에러도 제거
-                const errorElements = document.querySelectorAll('.field-error');
-                errorElements.forEach(element => {
-                    element.classList.remove('show');
-                });
-                const inputElements = document.querySelectorAll('.input-error');
-                inputElements.forEach(element => {
-                    element.classList.remove('input-error');
-                });
-            }
-        }
-
-        // 회원가입 매니저 초기화
-        document.addEventListener('DOMContentLoaded', () => {
-            new SignupManager();
-        });
-    </script>
-</body>
-</html>
+  try {
+    await signupManager.signup(signupData);
+  } catch (error) {
+    // 에러는 이미 처리됨
+  }
+});
 ```
 
-## 4. 유효성 검사
+## 4. 유효성 검사 규칙
 
-### 클라이언트 측 검사
+### 클라이언트 검증
+- **user_id**: 4-20자, 영문/숫자만 허용
+- **user_pw**: 8자 이상
+- **name**: 필수 입력, 공백 불가
+- **phone**: 010-1234-5678 형식
+- **is_reserved**: boolean 값
 
-- **사용자 ID**: 4-20자의 영문과 숫자만 허용
-- **비밀번호**: 8자 이상
-- **전화번호**: 010-1234-5678 형식
-- **이름**: 필수 입력
+### 서버 검증
+모든 클라이언트 검증 + 추가 검증:
+- 중복 사용자 ID 확인
+- project_id 유효성 확인
+- 데이터베이스 제약사항 검증
 
-### 서버 측 검사
+## 5. 자동 적용 보안 설정
 
-서버에서 추가로 검증하는 항목:
-- 사용자 ID 중복 검사
-- 프로젝트 ID 유효성 검사
-- 전화번호 형식 재검증
+이 API는 다음 보안 설정이 자동으로 적용됩니다:
 
-## 5. 보안 고려사항
+- ✅ **입력값 검증**: SQL Injection, XSS 방지
+- ✅ **비밀번호 해싱**: 평문 저장 금지
+- ✅ **프로젝트 격리**: project_id 기반 멀티테넌트
+- ✅ **중복 방지**: 사용자 ID 유일성 보장
 
-1. **비밀번호 보안**: 클라이언트에서 평문으로 전송하지만 HTTPS로 보호
-2. **Project ID**: 환경변수로 관리하여 노출 방지
-3. **입력 검증**: 클라이언트와 서버 양쪽에서 검증
-4. **HTTPS 필수**: 모든 회원가입 요청은 HTTPS 통신
+상세 보안 설정: [보안 가이드](../common/security.md)
 
 ## 6. 에러 처리
 
@@ -913,8 +405,14 @@ export const SignupFormTailwind: React.FC<SignupFormProps> = ({
 
 ## 7. 관련 문서
 
+### 구현 시 필수 참조 문서
+다음 문서들을 함께 참조하여 보안과 상태 관리를 올바르게 구현하세요:
+
+- [상태 관리 가이드](../common/state-management.md) - 회원가입 후 로그인 상태 전환, 조건부 렌더링
+- [보안 가이드](../common/security.md) - HttpOnly 쿠키, CORS, XSS/CSRF 방지, 입력값 검증
+- [에러 처리 가이드](../common/errors.md) - ServiceException 처리 패턴, 유효성 검사 오류
+
+### 관련 API 구현 문서
 - [로그인 구현 가이드](./login.md)
 - [사용자 정보 조회 가이드](./user-info.md)
 - [로그아웃 구현 가이드](./logout.md)
-- [보안 설정 가이드](../common/security.md)
-- [에러 처리 가이드](../common/errors.md)
