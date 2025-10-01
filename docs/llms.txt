@@ -6,11 +6,6 @@
 [로그아웃 구현 가이드](https://docs.aiapp.link/auth-operations/logout.md): logout, 로그아웃, signout, session-clear, token-invalidate, 세션종료, 인증해제 - POST /account/logout API + 쿠키 삭제 구현
 [사용자 정보 구현 가이드](https://docs.aiapp.link/auth-operations/user-info.md): user-info, 사용자정보, profile, 프로필, 인증상태, auth-check, 내정보 - GET /account/info API + 인증 상태 확인
 
-## 보안 및 상태 관리 (공통 참조)
-[상태 관리 가이드](https://docs.aiapp.link/common/state-management.md): 인증 상태 기반 UI 제어, 조건부 렌더링, CSS display 금지 패턴, React Context/Vue/JavaScript 상태 관리
-[보안 가이드](https://docs.aiapp.link/common/security.md): HttpOnly 쿠키 자동 인증, CORS 서브도메인 공유, XSS/CSRF 방지, 환경별 서버 구현 (Node.js/Python/Next.js)
-
 ## 통합 가이드
 [빠른 시작 가이드](https://docs.aiapp.link/integration/quickstart.md): 5분 안에 인증 시스템 클라이언트 코드 생성 및 연동
 [인증 플로우 가이드](https://docs.aiapp.link/integration/authentication-flow.md): 클라이언트 관점의 인증 플로우 상세 설명
-[에러 처리 가이드](https://docs.aiapp.link/common/errors.md): ServiceException 에러 코드와 React/JavaScript 에러 처리 패턴, 디버깅 도구
