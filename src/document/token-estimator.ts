@@ -117,23 +117,4 @@ export class TokenEstimator {
     // 헤더는 보통 중요한 키워드가 포함되어 있어 약간의 가중치 추가
     return headers.length * 2;
   }
-
-  /**
-   * 여러 텍스트의 총 토큰 수를 계산합니다.
-   * @param texts 토큰 수를 계산할 텍스트 배열
-   * @returns 총 토큰 수
-   */
-  static estimateTotal(texts: string[]): number {
-    return texts.reduce((total, text) => total + this.estimate(text), 0);
-  }
-
-  /**
-   * 텍스트가 주어진 토큰 한계를 초과하는지 확인합니다.
-   * @param text 확인할 텍스트
-   * @param maxTokens 최대 토큰 수
-   * @returns 초과 여부
-   */
-  static exceedsLimit(text: string, maxTokens: number): boolean {
-    return this.estimate(text) > maxTokens;
-  }
 }

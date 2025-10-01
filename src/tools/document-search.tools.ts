@@ -45,7 +45,7 @@ export function createSearchDocumentsTool(repository: BaaSDocsRepository, projec
           searchMode: searchMode,
           useWeights: true,
           useSynonyms: true,
-          minScore: 0.3, // 절대 최소 점수 임계값 설정
+          // minScore 제거: BM25Calculator의 상대적 필터링만 사용
         });
 
         if (results.length === 0) {

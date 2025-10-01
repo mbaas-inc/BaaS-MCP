@@ -134,22 +134,6 @@ export class BaaSWeightCalculator {
     return Math.min(contextWeight, 2.0); // 최대 2배로 제한
   }
 
-
-  /**
-   * 특정 키워드의 가중치 업데이트
-   */
-  updateKeywordWeight(keyword: string, weight: number): void {
-    this.keywordWeights[keyword.toLowerCase()] = weight;
-  }
-
-
-  /**
-   * 현재 키워드 가중치 설정 조회
-   */
-  getKeywordWeights(): Readonly<Record<string, number>> {
-    return this.keywordWeights;
-  }
-
   /**
    * 문서 배열을 ID 기반 Map으로 변환 (성능 최적화)
    */
