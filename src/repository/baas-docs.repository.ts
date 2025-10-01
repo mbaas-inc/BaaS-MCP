@@ -15,7 +15,6 @@ export interface SearchResult {
 
 export interface AdvancedSearchOptions {
   query: string;
-  keywords?: string[];
   limit?: number;
   minScore?: number;
   searchMode?: SearchMode;
@@ -24,42 +23,22 @@ export interface AdvancedSearchOptions {
 }
 
 export class BaaSDocsRepository {
-  private documentFreq: Map<string, number> = new Map();
   private bm25Calculator: BaaSBM25Calculator;
   private weightCalculator: BaaSWeightCalculator;
   private synonymDictionary: BaaSSynonymDictionary;
-  
-  constructor(private readonly documents: BaaSDocument[]) {
-    this.buildDocumentFrequency();
-    this.bm25Calculator = new BaaSBM25Calculator(documents);
+
+  /**
+   * @param featureDocs - 검색 가능한 기능 문서 (auth-operations, integration)
+   * @param commonDocs - 자동 제공되는 공통 규칙 문서 (common/)
+   */
+  constructor(
+    private readonly featureDocs: BaaSDocument[],
+    private readonly commonDocs: BaaSDocument[] = []
+  ) {
+    // 검색은 featureDocs만 대상으로
+    this.bm25Calculator = new BaaSBM25Calculator(featureDocs);
     this.weightCalculator = new BaaSWeightCalculator();
     this.synonymDictionary = new BaaSSynonymDictionary();
-  }
-
-  // Build document frequency map for BM25 scoring
-  private buildDocumentFrequency() {
-    for (const doc of this.documents) {
-      const uniqueTerms = new Set<string>();
-      
-      // Collect unique terms from keywords
-      doc.getKeywords().forEach(keyword => {
-        uniqueTerms.add(keyword.toLowerCase());
-      });
-      
-      // Collect unique terms from content
-      const words = doc.getContent()
-        .toLowerCase()
-        .replace(/[^\w\s가-힣]/g, ' ')
-        .split(/\s+/)
-        .filter(word => word.length > 2);
-      
-      words.forEach(word => uniqueTerms.add(word));
-      
-      // Update document frequency
-      uniqueTerms.forEach(term => {
-        this.documentFreq.set(term, (this.documentFreq.get(term) || 0) + 1);
-      });
-    }
   }
 
   /**
@@ -91,17 +70,17 @@ export class BaaSDocsRepository {
     }));
 
     if (options.useWeights !== false) {
-      weightedResults = this.weightCalculator.apply(bm25Results, this.documents, queryTerms);
+      weightedResults = this.weightCalculator.apply(bm25Results, this.featureDocs, queryTerms);
     }
 
-    // SearchResult 형태로 변환
+    // SearchResult 형태로 변환 (featureDocs에서만 검색)
     const searchResults: SearchResult[] = weightedResults
       .map(result => {
-        const document = this.getDocumentById(result.id);
+        const document = this.featureDocs.find(doc => doc.getId() === result.id);
         if (!document) return null;
 
         const relevantChunks = document.getRelevantChunks(queryTerms, 3);
-        
+
         return {
           document,
           score: result.finalScore,
@@ -113,20 +92,10 @@ export class BaaSDocsRepository {
       })
       .filter(result => result !== null) as SearchResult[];
 
-    // 키워드 필터링 - BM25 검색 시에는 이미 키워드 기반 검색이 되었으므로 추가 필터링 불필요
-    let filteredResults = searchResults;
-    // keywords는 이미 BM25 검색에서 query로 사용되었으므로 별도 필터링 제거
-    // if (options.keywords && options.keywords.length > 0) {
-    //   filteredResults = searchResults.filter(result => {
-    //     return options.keywords!.some(keyword =>
-    //       result.document.hasKeyword(keyword)
-    //     );
-    //   });
-    // }
-
     // 최소 점수 필터링
+    let filteredResults = searchResults;
     if (options.minScore !== undefined) {
-      filteredResults = filteredResults.filter(result => 
+      filteredResults = filteredResults.filter(result =>
         result.score >= options.minScore!
       );
     }
@@ -136,52 +105,32 @@ export class BaaSDocsRepository {
     return filteredResults.slice(0, limit);
   }
 
-  searchDocuments(
-    query: string,
-    limit: number = 5
-  ): SearchResult[] {
-    // query validation
-    if (!query || typeof query !== 'string') {
-      return [];
-    }
-    
-    const queryTerms = this.preprocessQuery(query);
-    
-    const documentsToSearch = this.documents;
-
-    const results: SearchResult[] = [];
-
-    for (const document of documentsToSearch) {
-      const score = document.calculateRelevance(
-        queryTerms,
-        this.documentFreq,
-        this.documents.length
-      );
-
-      if (score > 0) {
-        const relevantChunks = document.getRelevantChunks(queryTerms, 3);
-        
-        results.push({
-          document,
-          score,
-          relevantChunks
-        });
-      }
-    }
-
-    // Sort by score and limit results
-    return results
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
-  }
-
   getDocumentById(id: number): BaaSDocument | undefined {
-    return this.documents.find(doc => doc.getId() === id);
+    // Feature와 common 문서 모두에서 검색
+    const allDocs = [...this.featureDocs, ...this.commonDocs];
+    return allDocs.find(doc => doc.getId() === id);
   }
-
 
   getTotalDocuments(): number {
-    return this.documents.length;
+    return this.featureDocs.length + this.commonDocs.length;
+  }
+
+  /**
+   * 검색 가능한 기능 문서 수 반환
+   */
+  getFeatureDocumentsCount(): number {
+    return this.featureDocs.length;
+  }
+
+  /**
+   * Common 문서들을 반환합니다.
+   *
+   * **중요**: Common 문서는 검색되지 않으며, get-project-config를 통해서만 제공됩니다.
+   *
+   * @returns security.md, errors.md, state-management.md 문서들
+   */
+  getCommonDocs(): BaaSDocument[] {
+    return this.commonDocs;
   }
 
   private preprocessQuery(query: string): string[] {
@@ -189,7 +138,7 @@ export class BaaSDocsRepository {
     if (!query || typeof query !== 'string') {
       return [];
     }
-    
+
     // Normalize and tokenize query
     const normalized = query
       .toLowerCase()
@@ -203,25 +152,6 @@ export class BaaSDocsRepository {
     return terms;
   }
 
-  // Advanced search with multiple filters (기존 메서드와 호환성 유지)
-  advancedSearch(options: {
-    query: string;
-    keywords?: string[];
-    limit?: number;
-    minScore?: number;
-  }): SearchResult[] {
-    // 새로운 고급 검색 메서드로 위임
-    return this.searchDocumentsAdvanced({
-      query: options.query,
-      keywords: options.keywords,
-      limit: options.limit || 10,
-      minScore: options.minScore,
-      searchMode: SearchMode.BALANCED,
-      useWeights: true,
-      useSynonyms: true,
-    });
-  }
-
   // Get similar documents based on keywords
   getSimilarDocuments(
     document: BaaSDocument,
@@ -230,14 +160,17 @@ export class BaaSDocsRepository {
     const targetKeywords = Array.from(document.getKeywords());
     const similarities: Array<{ doc: BaaSDocument; score: number }> = [];
 
-    for (const doc of this.documents) {
+    // Feature와 common 문서 모두에서 검색
+    const allDocs = [...this.featureDocs, ...this.commonDocs];
+
+    for (const doc of allDocs) {
       if (doc.getId() === document.getId()) continue;
 
       const docKeywords = Array.from(doc.getKeywords());
       const intersection = targetKeywords.filter(keyword =>
         docKeywords.includes(keyword)
       );
-      
+
       const union = new Set([...targetKeywords, ...docKeywords]);
       const similarity = intersection.length / union.size;
 
