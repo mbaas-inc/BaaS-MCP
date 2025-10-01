@@ -252,61 +252,6 @@ const invalidateAllSessions = async () => {
 
 ## 환경별 서버 구현
 
-### Node.js/Express 서버
-
-```javascript
-const express = require('express');
-const cors = require('cors');
-const app = express();
-
-// CORS 설정
-app.use(cors({
-  origin: [
-    'https://app.aiapp.link',
-    'https://admin.aiapp.link',
-    'https://dashboard.aiapp.link'
-  ],
-  credentials: true,  // 쿠키 포함 허용
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// 로그인 라우트 예시
-app.post('/account/login', async (req, res) => {
-  try {
-    // 인증 로직...
-    const token = generateJWT(user);
-
-    // 환경별 쿠키 설정
-    const isProduction = process.env.NODE_ENV === 'production';
-    const cookieOptions = {
-      httpOnly: true,
-      secure: isProduction,
-      domain: isProduction ? '.aiapp.link' : 'localhost',
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 86400000, // 24시간 (밀리초)
-      path: '/'
-    };
-
-    res.cookie('access_token', token, cookieOptions);
-
-    res.json({
-      success: true,
-      message: '로그인 완료',
-      data: {
-        access_token: token,
-        token_type: 'bearer'
-      }
-    });
-  } catch (error) {
-    res.status(401).json({
-      success: false,
-      message: '로그인 실패'
-    });
-  }
-});
-```
-
 ### Next.js API 라우트
 
 ```typescript
@@ -324,7 +269,7 @@ export async function POST(request: Request) {
     const isProduction = process.env.NODE_ENV === 'production';
 
     const response = new Response(JSON.stringify({
-      success: true,
+      result: 'SUCCESS',
       message: '로그인 완료',
       data: {
         access_token: token,
@@ -343,66 +288,12 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     return new Response(JSON.stringify({
-      success: false,
+      result: 'FAIL',
+      errorCode: 'INVALID_USER',
       message: '로그인 실패'
     }), { status: 401 });
   }
 }
-```
-
-### FastAPI/Python 서버
-
-```python
-from fastapi import FastAPI, Response, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-import os
-
-app = FastAPI()
-
-# CORS 설정
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://app.aiapp.link",
-        "https://admin.aiapp.link",
-        "https://dashboard.aiapp.link"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.post("/account/login")
-async def login(credentials: LoginCredentials, response: Response):
-    try:
-        # 인증 로직...
-        user = authenticate_user(credentials.user_id, credentials.user_pw)
-        token = generate_jwt(user)
-
-        # 환경별 쿠키 설정
-        is_production = os.getenv("ENV") == "production"
-
-        response.set_cookie(
-            key="access_token",
-            value=token,
-            httponly=True,
-            secure=is_production,
-            domain=".aiapp.link" if is_production else "localhost",
-            samesite="none" if is_production else "lax",
-            max_age=86400,
-            path="/"
-        )
-
-        return {
-            "success": True,
-            "message": "로그인 완료",
-            "data": {
-                "access_token": token,
-                "token_type": "bearer"
-            }
-        }
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="로그인 실패")
 ```
 
 ## 클라이언트 설정

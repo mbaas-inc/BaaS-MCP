@@ -14,12 +14,13 @@ BaaS API는 모든 에러를 ServiceException 형태로 반환합니다:
 
 ```json
 {
+  "result": "FAIL",
   "errorCode": "ERROR_CODE_NAME",
   "message": "사용자 친화적 에러 메시지",
   "detail": [
     {
       "field": "필드명",
-      "message": "필드별 상세 에러 메시지"
+      "reason": "필드별 상세 에러 메시지"
     }
   ]
 }
@@ -73,6 +74,7 @@ BaaS API는 모든 에러를 ServiceException 형태로 반환합니다:
 #### INVALID_USER
 ```json
 {
+  "result": "FAIL",
   "errorCode": "INVALID_USER",
   "message": "사용자 정보가 올바르지 않습니다"
 }
@@ -89,6 +91,7 @@ if (error.errorCode === 'INVALID_USER') {
 #### UNAUTHORIZED
 ```json
 {
+  "result": "FAIL",
   "errorCode": "UNAUTHORIZED",
   "message": "인증이 필요합니다"
 }
@@ -105,6 +108,7 @@ if (error.errorCode === 'UNAUTHORIZED') {
 #### TOKEN_EXPIRED
 ```json
 {
+  "result": "FAIL",
   "errorCode": "TOKEN_EXPIRED",
   "message": "토큰이 만료되었습니다. 다시 로그인해주세요."
 }
@@ -117,6 +121,7 @@ if (error.errorCode === 'UNAUTHORIZED') {
 #### USER_ALREADY_EXISTS
 ```json
 {
+  "result": "FAIL",
   "errorCode": "USER_ALREADY_EXISTS",
   "message": "이미 사용 중인 아이디입니다"
 }
@@ -133,6 +138,7 @@ if (error.errorCode === 'USER_ALREADY_EXISTS') {
 #### PASSWORD_TOO_SHORT
 ```json
 {
+  "result": "FAIL",
   "errorCode": "PASSWORD_TOO_SHORT",
   "message": "비밀번호는 최소 8자 이상이어야 합니다"
 }
@@ -143,16 +149,17 @@ if (error.errorCode === 'USER_ALREADY_EXISTS') {
 #### VALIDATION_ERROR
 ```json
 {
+  "result": "FAIL",
   "errorCode": "VALIDATION_ERROR",
-  "message": "요청 값이 올바르지 않습니다.",
+  "message": "요청 값이 올바른지 않습니다.",
   "detail": [
     {
       "field": "user_pw",
-      "message": "비밀번호는 최소 8자 이상이어야 합니다"
+      "reason": "비밀번호는 최소 8자 이상이어야 합니다"
     },
     {
       "field": "phone",
-      "message": "전화번호 형식이 올바르지 않습니다"
+      "reason": "전화번호 형식이 올바르지 않습니다"
     }
   ]
 }
@@ -161,12 +168,13 @@ if (error.errorCode === 'USER_ALREADY_EXISTS') {
 #### INVALID_EMAIL
 ```json
 {
+  "result": "FAIL",
   "errorCode": "INVALID_EMAIL",
   "message": "이메일 형식이 올바르지 않습니다",
   "detail": [
     {
       "field": "email",
-      "message": "유효한 이메일 주소를 입력해주세요"
+      "reason": "유효한 이메일 주소를 입력해주세요"
     }
   ]
 }
@@ -175,12 +183,13 @@ if (error.errorCode === 'USER_ALREADY_EXISTS') {
 #### INVALID_PHONE
 ```json
 {
+  "result": "FAIL",
   "errorCode": "INVALID_PHONE",
   "message": "전화번호 형식이 올바르지 않습니다",
   "detail": [
     {
       "field": "phone",
-      "message": "010-1234-5678 형식으로 입력해주세요"
+      "reason": "010-1234-5678 형식으로 입력해주세요"
     }
   ]
 }
@@ -191,6 +200,7 @@ if (error.errorCode === 'USER_ALREADY_EXISTS') {
 #### INTERNAL_SERVER_ERROR
 ```json
 {
+  "result": "FAIL",
   "errorCode": "INTERNAL_SERVER_ERROR",
   "message": "예기치 못한 오류가 발생했습니다"
 }
@@ -199,6 +209,7 @@ if (error.errorCode === 'USER_ALREADY_EXISTS') {
 #### RATE_LIMIT_EXCEEDED
 ```json
 {
+  "result": "FAIL",
   "errorCode": "RATE_LIMIT_EXCEEDED",
   "message": "요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요."
 }
@@ -241,7 +252,7 @@ export const useApiErrorHandler = () => {
         break;
 
       case 'VALIDATION_ERROR':
-        message = error.detail?.map(d => d.message).join(', ') || '입력값이 올바르지 않습니다.';
+        message = error.detail?.map(d => d.reason).join(', ') || '입력값이 올바르지 않습니다.';
         break;
 
       case 'RATE_LIMIT_EXCEEDED':
@@ -332,7 +343,7 @@ class AuthErrorHandler {
           return '이미 사용 중인 정보입니다.';
 
         case 422:
-          return error.detail?.map(d => d.message).join(', ') || '입력값이 올바르지 않습니다.';
+          return error.detail?.map(d => d.reason).join(', ') || '입력값이 올바르지 않습니다.';
 
         case 429:
           return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.';

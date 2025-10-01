@@ -2,8 +2,8 @@
 
 AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 핵심 가이드입니다.
 
-**Keywords**: signup, 회원가입, register, validation, user creation, form, 사용자등록
-**Focus**: 회원가입 API 구현, 유효성 검사, React/JavaScript 예제
+**Keywords**: signup, 회원가입, register, validation, user creation, form, 사용자등록, HTML, JavaScript, Vanilla, vanilla
+**Focus**: 회원가입 API 구현, 유효성 검사, HTML/Vanilla JavaScript/React 예제
 
 ## 1. API 명세
 
@@ -25,7 +25,6 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 핵심
   "user_pw": "string",      // 비밀번호 (8자 이상)
   "name": "string",         // 사용자 이름
   "phone": "string",        // 전화번호 (010-1234-5678 형식)
-  "is_reserved": boolean,   // 예약 계정 여부
   "project_id": "string"    // 프로젝트 ID (UUID) - 필수
 }
 ```
@@ -34,6 +33,7 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 핵심
 
 ```json
 {
+  "is_reserved": boolean,   // 예약 계정 여부 (기본값: false)
   "data": {                 // 커스텀 데이터 필드
     "age": 25,
     "interests": ["coding", "music"],
@@ -65,7 +65,7 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 핵심
 
 ```json
 {
-  "success": true,
+  "result": "SUCCESS",
   "message": "회원가입이 완료되었습니다.",
   "data": {
     "id": "user-uuid-here",
@@ -84,13 +84,13 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 핵심
 ##### 422 Validation Error
 ```json
 {
-  "success": false,
+  "result": "FAIL",
   "errorCode": "VALIDATION_ERROR",
   "message": "요청 값이 올바르지 않습니다.",
   "detail": [
     {
       "field": "user_id",
-      "message": "이미 사용 중인 사용자 ID입니다"
+      "reason": "이미 사용 중인 사용자 ID입니다"
     }
   ]
 }
@@ -99,7 +99,7 @@ AIApp BaaS 인증 시스템의 회원가입 기능을 구현하기 위한 핵심
 ##### 409 Conflict
 ```json
 {
-  "success": false,
+  "result": "FAIL",
   "errorCode": "USER_EXISTS",
   "message": "이미 존재하는 사용자입니다"
 }
@@ -159,14 +159,14 @@ const SignupForm = ({ onSuccess, projectId }) => {
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.result === 'SUCCESS') {
         onSuccess?.(result.data);
       } else {
         // 서버 에러를 필드별로 매핑
         if (result.detail) {
           const serverErrors = {};
           result.detail.forEach(error => {
-            serverErrors[error.field] = error.message;
+            serverErrors[error.field] = error.reason;
           });
           setErrors(serverErrors);
         } else {
@@ -300,7 +300,7 @@ class SignupManager {
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.result === 'SUCCESS') {
         this.onSignupSuccess(result.data);
         return result.data;
       } else {
@@ -368,7 +368,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
 - **user_pw**: 8자 이상
 - **name**: 필수 입력, 공백 불가
 - **phone**: 010-1234-5678 형식
-- **is_reserved**: boolean 값
+- **is_reserved**: boolean 값 (선택사항, 기본값: false)
 
 ### 서버 검증
 모든 클라이언트 검증 + 추가 검증:

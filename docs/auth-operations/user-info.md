@@ -2,8 +2,8 @@
 
 AIApp BaaS 인증 시스템의 사용자 정보 조회 기능을 구현하기 위한 핵심 가이드입니다.
 
-**Keywords**: user-info, 사용자정보, profile, 프로필, 인증상태, auth-check, 내정보
-**Focus**: 사용자 정보 API 구현, 인증 상태 확인, React/JavaScript 예제
+**Keywords**: user-info, 사용자정보, profile, 프로필, 인증상태, auth-check, 내정보, HTML, JavaScript, Vanilla, vanilla
+**Focus**: 사용자 정보 API 구현, 인증 상태 확인, HTML/Vanilla JavaScript/React 예제
 
 ## 1. API 명세
 
@@ -54,7 +54,7 @@ fetch('https://api.aiapp.link/account/info', {
 
 ```json
 {
-  "success": true,
+  "result": "SUCCESS",
   "message": "내 정보",
   "data": {
     "id": "user-uuid-here",
@@ -86,6 +86,7 @@ fetch('https://api.aiapp.link/account/info', {
 ##### 401 Unauthorized
 ```json
 {
+  "result": "FAIL",
   "errorCode": "UNAUTHORIZED",
   "message": "인증이 필요합니다"
 }
@@ -94,12 +95,13 @@ fetch('https://api.aiapp.link/account/info', {
 ##### 422 Validation Error
 ```json
 {
+  "result": "FAIL",
   "errorCode": "VALIDATION_ERROR",
   "message": "요청 값이 올바르지 않습니다.",
   "detail": [
     {
       "field": "authorization",
-      "message": "유효하지 않은 토큰입니다"
+      "reason": "유효하지 않은 토큰입니다"
     }
   ]
 }
@@ -143,7 +145,7 @@ export const useUserInfo = () => {
       }
 
       const result = await response.json();
-      if (result.success) {
+      if (result.result === 'SUCCESS') {
         setUser(result.data);
         return result.data;
       } else {
@@ -218,7 +220,7 @@ class UserInfoManager {
       }
 
       const result = await response.json();
-      if (result.success) {
+      if (result.result === 'SUCCESS') {
         this.user = result.data;
         return this.user;
       } else {

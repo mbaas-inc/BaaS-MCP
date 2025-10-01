@@ -2,8 +2,8 @@
 
 AIApp BaaS 인증 시스템의 로그인 기능을 구현하기 위한 핵심 가이드입니다.
 
-**Keywords**: login, 로그인, signin, authenticate, jwt, token, credentials, 인증
-**Focus**: 로그인 API 구현, 자동 쿠키 설정, React/JavaScript 예제
+**Keywords**: login, 로그인, signin, authenticate, jwt, token, credentials, 인증, HTML, JavaScript, Vanilla, vanilla
+**Focus**: 로그인 API 구현, 자동 쿠키 설정, HTML/Vanilla JavaScript/React 예제
 
 ## 1. API 명세
 
@@ -43,7 +43,7 @@ AIApp BaaS 인증 시스템의 로그인 기능을 구현하기 위한 핵심 �
 
 ```json
 {
-  "success": true,
+  "result": "SUCCESS",
   "message": "로그인 완료",
   "data": {
     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -67,6 +67,7 @@ AIApp BaaS 인증 시스템의 로그인 기능을 구현하기 위한 핵심 �
 ##### 400 Bad Request
 ```json
 {
+  "result": "FAIL",
   "errorCode": "INVALID_USER",
   "message": "사용자 정보가 올바르지 않습니다"
 }
@@ -75,12 +76,13 @@ AIApp BaaS 인증 시스템의 로그인 기능을 구현하기 위한 핵심 �
 ##### 422 Validation Error
 ```json
 {
+  "result": "FAIL",
   "errorCode": "VALIDATION_ERROR",
   "message": "요청 값이 올바르지 않습니다.",
   "detail": [
     {
       "field": "user_pw",
-      "message": "비밀번호는 8자리 이상이어야 합니다"
+      "reason": "비밀번호는 8자리 이상이어야 합니다"
     }
   ]
 }
@@ -113,7 +115,7 @@ const LoginForm = ({ onSuccess, projectId }) => {
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.result === 'SUCCESS') {
         onSuccess?.(result.data);
       } else {
         setError(result.message || '로그인 실패');
@@ -178,7 +180,7 @@ class LoginManager {
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.result === 'SUCCESS') {
         // 로그인 성공 처리
         this.onLoginSuccess(result.data);
         return result.data;

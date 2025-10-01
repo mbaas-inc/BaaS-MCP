@@ -2,8 +2,8 @@
 
 AIApp BaaS 인증 시스템의 로그아웃 기능을 구현하기 위한 핵심 가이드입니다.
 
-**Keywords**: logout, 로그아웃, signout, session-clear, token-invalidate, 세션종료, 인증해제
-**Focus**: 로그아웃 API 구현, 쿠키 자동 삭제, React/JavaScript 예제
+**Keywords**: logout, 로그아웃, signout, session-clear, token-invalidate, 세션종료, 인증해제, HTML, JavaScript, Vanilla, vanilla
+**Focus**: 로그아웃 API 구현, 쿠키 자동 삭제, HTML/Vanilla JavaScript/React 예제
 
 ## 1. API 명세
 
@@ -54,7 +54,7 @@ fetch('https://api.aiapp.link/account/logout', {
 
 ```json
 {
-  "success": true,
+  "result": "SUCCESS",
   "message": "로그아웃이 완료되었습니다."
 }
 ```
@@ -71,6 +71,7 @@ fetch('https://api.aiapp.link/account/logout', {
 ##### 401 Unauthorized
 ```json
 {
+  "result": "FAIL",
   "errorCode": "UNAUTHORIZED",
   "message": "인증이 필요합니다"
 }
@@ -79,12 +80,13 @@ fetch('https://api.aiapp.link/account/logout', {
 ##### 422 Validation Error
 ```json
 {
+  "result": "FAIL",
   "errorCode": "VALIDATION_ERROR",
   "message": "요청 값이 올바르지 않습니다.",
   "detail": [
     {
       "field": "authorization",
-      "message": "유효하지 않은 토큰입니다"
+      "reason": "유효하지 않은 토큰입니다"
     }
   ]
 }
@@ -119,7 +121,7 @@ export const useLogout = (options?: LogoutOptions) => {
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.result === 'SUCCESS') {
         localStorage.removeItem('user');
         sessionStorage.clear();
 
@@ -198,7 +200,7 @@ class LogoutManager {
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
+      if (response.ok && result.result === 'SUCCESS') {
         this.clearLocalData();
 
         if (onSuccess) onSuccess(result);

@@ -181,9 +181,9 @@ API에서 반환하는 표준 에러 형식:
 
 ```json
 {
-  "success": false,
+  "result": "FAIL",
+  "errorCode": "INVALID_CREDENTIALS",
   "message": "사용자에게 표시할 메시지",
-  "error_code": "INVALID_CREDENTIALS",
   "detail": [] // 상세 에러 정보 (422 에러 시)
 }
 ```

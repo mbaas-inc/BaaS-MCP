@@ -54,7 +54,7 @@ const response = await fetch('https://api.aiapp.link/account/signup', {
 **성공 응답**:
 ```json
 {
-  "success": true,
+  "result": "SUCCESS",
   "message": "회원가입이 완료되었습니다.",
   "data": {
     "user_id": "johndoe",
@@ -109,7 +109,7 @@ const userInfo = await response.json();
 **성공 응답**:
 ```json
 {
-  "success": true,
+  "result": "SUCCESS",
   "data": {
     "user_id": "johndoe",
     "name": "John Doe",
